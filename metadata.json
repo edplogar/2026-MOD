@@ -1,0 +1,8 @@
+{
+  "name": "RR MOD REPORT LOGAR",
+  "description": "Aplikasi dasbor visualisasi data interaktif Manager on Duty (MOD) Hotel Lombok Garden dengan Chart.js, ekspor PDF otomatis, kompresi gambar Google Drive hemat ruang, dan sinkronisasi cloud.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

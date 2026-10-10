@@ -1,0 +1,101 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Default-deny catch-all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helper functions
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidUser(data) {
+      return data.keys().hasAll(['id', 'username', 'name', 'role', 'department'])
+        && data.id is string && data.id.size() <= 128
+        && data.username is string && data.username.size() <= 64
+        && data.name is string && data.name.size() <= 128
+        && data.role is string && data.role.size() <= 64
+        && data.department is string && data.department.size() <= 64;
+    }
+
+    function isValidReport(data) {
+      return data.keys().hasAll(['id', 'date', 'officerName', 'location', 'problem', 'followUpDept', 'status', 'priority'])
+        && data.id is string && data.id.size() <= 128
+        && data.date is string && data.date.size() <= 64
+        && data.officerName is string && data.officerName.size() <= 128
+        && data.location is string && data.location.size() <= 500
+        && data.problem is string && data.problem.size() <= 5000
+        && data.followUpDept is string && data.followUpDept.size() <= 64
+        && data.status is string && data.status.size() <= 32
+        && data.priority is string && data.priority.size() <= 32;
+    }
+
+    function isValidSettings(data) {
+      return data.keys().hasAll(['hotelName', 'hotelAddress', 'driveFolderId', 'driveFolderName'])
+        && data.hotelName is string && data.hotelName.size() <= 128
+        && data.hotelAddress is string && data.hotelAddress.size() <= 256
+        && data.driveFolderId is string && data.driveFolderId.size() <= 128
+        && data.driveFolderName is string && data.driveFolderName.size() <= 128;
+    }
+
+    function isValidLog(data) {
+      return data.keys().hasAll(['id', 'timestamp', 'actor', 'action', 'details', 'category'])
+        && data.id is string && data.id.size() <= 128
+        && data.timestamp is string && data.timestamp.size() <= 64
+        && data.actor is string && data.actor.size() <= 128
+        && data.action is string && data.action.size() <= 64
+        && data.details is string && data.details.size() <= 1000
+        && data.category is string && data.category.size() <= 32;
+    }
+
+    // Users and permissions collection - Multi-Device & Multi-IP real-time synchronization
+    match /users/{userId} {
+      allow read: if true;
+      allow create, update: if isValidId(userId) && isValidUser(incoming());
+      allow delete: if isValidId(userId);
+    }
+
+    // Inspection reports collection
+    match /reports/{reportId} {
+      allow read: if true;
+      allow create, update: if isValidId(reportId) && isValidReport(incoming());
+      allow delete: if isValidId(reportId);
+    }
+
+    // System settings collection
+    match /settings/{settingId} {
+      allow read: if true;
+      allow create, update: if isValidId(settingId);
+      allow delete: if isValidId(settingId);
+    }
+
+    // Role permissions collection
+    match /role_permissions/{permId} {
+      allow read: if true;
+      allow create, update, delete: if isValidId(permId);
+    }
+
+    // Audit logs collection (immutable)
+    match /audit_logs/{logId} {
+      allow read: if true;
+      allow create: if isValidId(logId) && isValidLog(incoming());
+      allow update, delete: if false;
+    }
+
+    // Test connection document
+    match /test/connection {
+      allow read: if true;
+    }
+  }
+}

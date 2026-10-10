@@ -1,0 +1,48 @@
+@import "tailwindcss";
+
+@theme {
+  --color-logar-green: #95A823;
+  --color-logar-green-dark: #7B8C1B;
+  --color-logar-green-light: #C6CC81;
+  --color-logar-pistachio: #EAEEBB;
+  --color-logar-sage: #D9DF98;
+  --color-logar-earth: #877465;
+  --color-logar-espresso: #61554D;
+  --color-logar-dark: #231E1B;
+  --color-logar-darker: #1A1614;
+  --color-logar-sand: #FAFBF5;
+  --color-logar-cream: #F4F6EA;
+  --color-logar-amber: #FFBC7D;
+  --font-serif: 'Cormorant Garamond', Georgia, serif;
+}
+
+:root {
+  --logar-primary: #95A823;
+  --logar-dark: #231E1B;
+  --logar-earth: #877465;
+}
+
+body {
+  background-color: #FAFBF5;
+  color: #231E1B;
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+}
+
+/* Custom subtle scrollbar matching hotel earthy tones */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #F4F6EA;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #C6CC81;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #95A823;
+}

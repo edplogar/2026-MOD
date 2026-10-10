@@ -1,0 +1,273 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "Hotel Lombok Garden user profile, role, and permission record",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique user ID",
+          "maxLength": 128
+        },
+        "username": {
+          "type": "string",
+          "description": "Alphanumeric login username",
+          "maxLength": 64
+        },
+        "name": {
+          "type": "string",
+          "description": "Full staff or manager name",
+          "maxLength": 128
+        },
+        "email": {
+          "type": "string",
+          "description": "User email address",
+          "maxLength": 128
+        },
+        "role": {
+          "type": "string",
+          "description": "User role: Super Admin, General Manager, Duty Manager, MOD Officer, Department Head, Staff",
+          "maxLength": 64
+        },
+        "department": {
+          "type": "string",
+          "description": "Department name",
+          "maxLength": 64
+        },
+        "avatar": {
+          "type": "string",
+          "description": "Avatar image URL",
+          "maxLength": 1000
+        },
+        "phone": {
+          "type": "string",
+          "description": "Contact phone number",
+          "maxLength": 32
+        },
+        "status": {
+          "type": "string",
+          "description": "Active or suspended status",
+          "enum": ["active", "suspended"]
+        },
+        "lastActive": {
+          "type": "string",
+          "description": "Last active timestamp or label",
+          "maxLength": 64
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Creation date",
+          "maxLength": 64
+        },
+        "password": {
+          "type": "string",
+          "description": "Credential password hash or string",
+          "maxLength": 128
+        }
+      },
+      "required": ["id", "username", "name", "role", "department"]
+    },
+    "ModReportItem": {
+      "title": "ModReportItem",
+      "description": "Manager on Duty hotel inspection report item",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Report ID",
+          "maxLength": 128
+        },
+        "timestamp": {
+          "type": "string",
+          "description": "Report timestamp",
+          "maxLength": 64
+        },
+        "date": {
+          "type": "string",
+          "description": "Report date YYYY-MM-DD",
+          "maxLength": 32
+        },
+        "time": {
+          "type": "string",
+          "description": "Report time HH:mm",
+          "maxLength": 32
+        },
+        "officerName": {
+          "type": "string",
+          "description": "Name of MOD Officer",
+          "maxLength": 128
+        },
+        "location": {
+          "type": "string",
+          "description": "Hotel location or area",
+          "maxLength": 200
+        },
+        "areaGroup": {
+          "type": "string",
+          "description": "Area classification",
+          "maxLength": 100
+        },
+        "problem": {
+          "type": "string",
+          "description": "Problem description or inspection findings",
+          "maxLength": 2000
+        },
+        "followUpDept": {
+          "type": "string",
+          "description": "Follow up department",
+          "maxLength": 64
+        },
+        "status": {
+          "type": "string",
+          "description": "Report status",
+          "enum": ["Aman", "Perlu Follow Up", "Dalam Proses", "Selesai"]
+        },
+        "priority": {
+          "type": "string",
+          "description": "Priority level",
+          "enum": ["Rendah", "Normal", "Tinggi", "Urgent"]
+        },
+        "shift": {
+          "type": "string",
+          "description": "Working shift name",
+          "maxLength": 64
+        },
+        "notes": {
+          "type": "string",
+          "description": "Additional notes",
+          "maxLength": 2000
+        },
+        "synced": {
+          "type": "boolean",
+          "description": "Cloud synchronization status"
+        },
+        "syncedAt": {
+          "type": "string",
+          "description": "Cloud sync timestamp",
+          "maxLength": 64
+        }
+      },
+      "required": ["id", "date", "officerName", "location", "problem", "followUpDept", "status", "priority"]
+    },
+    "SystemSettings": {
+      "title": "SystemSettings",
+      "description": "Hotel Lombok Garden global system settings managed by Super Admin",
+      "type": "object",
+      "properties": {
+        "hotelName": {
+          "type": "string",
+          "description": "Hotel brand name",
+          "maxLength": 128
+        },
+        "hotelAddress": {
+          "type": "string",
+          "description": "Hotel address",
+          "maxLength": 256
+        },
+        "hotelPhone": {
+          "type": "string",
+          "description": "Hotel contact phone",
+          "maxLength": 64
+        },
+        "hotelEmail": {
+          "type": "string",
+          "description": "Hotel official email",
+          "maxLength": 128
+        },
+        "driveFolderId": {
+          "type": "string",
+          "description": "Super Admin Google Drive folder ID",
+          "maxLength": 128
+        },
+        "driveFolderName": {
+          "type": "string",
+          "description": "Google Drive folder label",
+          "maxLength": 128
+        },
+        "driveWebhookUrl": {
+          "type": "string",
+          "description": "Google Apps Script or Webhook URL",
+          "maxLength": 500
+        },
+        "compressionQuality": {
+          "type": "number",
+          "description": "Image compression ratio 0.1 to 1.0"
+        },
+        "maxImageDimension": {
+          "type": "number",
+          "description": "Maximum image width or height"
+        },
+        "autoSyncEnabled": {
+          "type": "boolean",
+          "description": "Auto sync flag"
+        },
+        "autoSyncIntervalMinutes": {
+          "type": "number",
+          "description": "Auto sync interval in minutes"
+        },
+        "sessionTimeoutMinutes": {
+          "type": "number",
+          "description": "Session timeout in minutes"
+        }
+      },
+      "required": ["hotelName", "hotelAddress", "driveFolderId", "driveFolderName"]
+    },
+    "SystemAuditLog": {
+      "title": "SystemAuditLog",
+      "description": "System event and security audit trail",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Audit log ID",
+          "maxLength": 128
+        },
+        "timestamp": {
+          "type": "string",
+          "description": "Event timestamp",
+          "maxLength": 64
+        },
+        "actor": {
+          "type": "string",
+          "description": "User or service who performed the action",
+          "maxLength": 128
+        },
+        "action": {
+          "type": "string",
+          "description": "Action name code",
+          "maxLength": 64
+        },
+        "details": {
+          "type": "string",
+          "description": "Audit details",
+          "maxLength": 1000
+        },
+        "category": {
+          "type": "string",
+          "description": "Log category",
+          "enum": ["USER", "SETTING", "DATA", "SECURITY"]
+        }
+      },
+      "required": ["id", "timestamp", "actor", "action", "details", "category"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "UserProfile",
+      "description": "Hotel staff and administrator accounts"
+    },
+    "/reports/{reportId}": {
+      "schema": "ModReportItem",
+      "description": "Manager on Duty hotel inspection reports"
+    },
+    "/settings/{settingId}": {
+      "schema": "SystemSettings",
+      "description": "System configuration and hotel parameters"
+    },
+    "/audit_logs/{logId}": {
+      "schema": "SystemAuditLog",
+      "description": "Immutable security and activity audit records"
+    }
+  }
+}
