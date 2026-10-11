@@ -479,6 +479,8 @@ app.post('/api/reports', (req: Request, res: Response) => {
     if (Array.isArray(reports)) {
       // Overwrite / sync full array
       db.reports = reports;
+      db.version = (db.version || 1) + 1;
+      saveDatabaseToDisk();
       broadcastSyncEvent('REPORTS_SYNCED', { count: db.reports.length });
       return res.json({ success: true, count: db.reports.length, version: db.version });
     }
@@ -495,6 +497,8 @@ app.post('/api/reports', (req: Request, res: Response) => {
       db.reports.unshift(targetReport);
     }
 
+    db.version = (db.version || 1) + 1;
+    saveDatabaseToDisk();
     broadcastSyncEvent('REPORT_UPSERTED', { reportId: targetReport.id });
     res.json({ success: true, report: targetReport, version: db.version });
   } catch (err: any) {
@@ -503,11 +507,26 @@ app.post('/api/reports', (req: Request, res: Response) => {
   }
 });
 
+// Delete all reports
+app.delete('/api/reports', (_req: Request, res: Response) => {
+  try {
+    db.reports = [];
+    db.version = (db.version || 1) + 1;
+    saveDatabaseToDisk();
+    broadcastSyncEvent('REPORTS_SYNCED', { count: 0 });
+    res.json({ success: true, count: 0, version: db.version });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message || 'Gagal menghapus seluruh laporan' });
+  }
+});
+
 // Delete specific report
 app.delete('/api/reports/:id', (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     db.reports = db.reports.filter(r => r.id !== id);
+    db.version = (db.version || 1) + 1;
+    saveDatabaseToDisk();
     broadcastSyncEvent('REPORT_DELETED', { reportId: id });
     res.json({ success: true, version: db.version });
   } catch (err: any) {

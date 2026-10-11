@@ -30,31 +30,36 @@ export function sanitizeReportsForStorage(reports: ModReportItem[]): ModReportIt
 }
 
 export function loadReports(): ModReportItem[] {
-  if (memoryReportsCache && memoryReportsCache.length > 0) {
+  if (memoryReportsCache !== null) {
     return memoryReportsCache;
   }
 
   try {
+    const isCleared = localStorage.getItem(CLEARED_KEY) === 'true';
+    if (isCleared) {
+      memoryReportsCache = [];
+      return [];
+    }
+
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw !== null) {
       const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed) && parsed.length > 0) {
-        // Enforce removal of all reports prior to October 2026
-        const valid = parsed.filter(r => isDateOnOrAfterOctober2026(r.date || r.timestamp));
-        if (valid.length > 0) {
-          memoryReportsCache = valid;
-          return valid;
+      if (Array.isArray(parsed)) {
+        if (parsed.length === 0) {
+          memoryReportsCache = [];
+          return [];
         }
+        const valid = parsed.filter(r => isDateOnOrAfterOctober2026(r.date || r.timestamp));
+        memoryReportsCache = valid;
+        return valid;
       }
     }
   } catch (e) {
     console.warn('Recovering reports from cache due to read error:', e);
   }
 
-  const initial = parseCSVToReports(RAW_MOD_CSV);
-  memoryReportsCache = initial;
-  saveReports(initial);
-  return initial;
+  memoryReportsCache = [];
+  return [];
 }
 
 export function saveReports(reports: ModReportItem[]): void {
@@ -117,12 +122,29 @@ export function saveReports(reports: ModReportItem[]): void {
 }
 
 export async function clearAllReports(): Promise<void> {
+  memoryReportsCache = [];
+  try {
+    localStorage.setItem(CLEARED_KEY, 'true');
+  } catch {
+    // ignore
+  }
   saveReports([]);
+
+  // Clear server backend database reports
+  try {
+    await fetch('/api/reports', {
+      method: 'DELETE',
+    });
+  } catch (err) {
+    console.warn('Error clearing backend server reports:', err);
+  }
+
   try {
     await clearAllReportsFromFirestore();
   } catch (err) {
     console.warn('Error clearing Firestore reports:', err);
   }
+
   try {
     window.dispatchEvent(new CustomEvent('logar_reports_updated', { detail: [] }));
   } catch {
