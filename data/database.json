@@ -1,6 +1,6 @@
 {
-  "version": 3,
-  "updatedAt": "2026-10-11T05:57:17.813Z",
+  "version": 4,
+  "updatedAt": "2026-10-11T06:12:28.576Z",
   "users": [
     {
       "id": "user-superadmin",
@@ -56,20 +56,6 @@
       "phone": "+62 813-2345-6702",
       "status": "active",
       "createdAt": "2025-12-05",
-      "lastActive": "Kemarin"
-    },
-    {
-      "id": "user-mod-candra",
-      "username": "candra",
-      "password": "logar123",
-      "name": "Candra",
-      "email": "candra@lombokgardenhotel.com",
-      "role": "Duty Manager",
-      "department": "Security",
-      "avatar": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80",
-      "phone": "+62 817-6543-2109",
-      "status": "active",
-      "createdAt": "2025-12-06",
       "lastActive": "Kemarin"
     },
     {

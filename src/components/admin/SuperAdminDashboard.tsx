@@ -370,8 +370,9 @@ export const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({
       try {
         deleteUser(id);
         addAuditLog('USER_DELETED', `Menghapus pengguna ${name} (ID: ${id})`, 'USER');
-        showToast(`Pengguna ${name} berhasil dihapus.`);
+        showToast(`Pengguna ${name} berhasil dihapus permanen dari sistem.`);
         loadData();
+        if (onRefreshData) onRefreshData();
       } catch (err: any) {
         alert(err.message || 'Gagal menghapus pengguna.');
       }

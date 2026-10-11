@@ -107,23 +107,22 @@ try {
           db.settings.branding.brandSubtitle = 'MOD REPORT LOGAR';
         }
       }
-      // Ensure all initial hotel users (e.g. Kresna, Sukmajaya) are present without duplicates
+      // Deduplicate existing users loaded from disk without resurrecting deleted users
       const mapById = new Map<string, UserProfile>();
-      const seenUsernames = new Map<string, string>();
-      for (const u of [...db.users, ...INITIAL_HOTEL_USERS]) {
+      for (const u of db.users) {
         if (!u || !u.id) continue;
         const uId = String(u.id).trim();
-        const uName = (u.username || '').trim().toLowerCase();
         if (mapById.has(uId)) {
           const ex = mapById.get(uId)!;
           mapById.set(uId, { ...ex, ...u });
           continue;
         }
-        if (uName && seenUsernames.has(uName)) continue;
         mapById.set(uId, u);
-        if (uName) seenUsernames.set(uName, uId);
       }
       db.users = Array.from(mapById.values());
+      if (db.users.length === 0) {
+        db.users = JSON.parse(JSON.stringify(INITIAL_HOTEL_USERS));
+      }
 
       saveDatabaseToDisk();
       console.log(`[DB] Database loaded from disk. Users: ${db.users.length}, Reports: ${db.reports.length}, Version: ${db.version}`);
@@ -410,9 +409,11 @@ app.delete('/api/users/:id', (req: Request, res: Response) => {
     }
 
     db.users = db.users.filter(u => u.id !== id);
+    db.version = (db.version || 1) + 1;
+    saveDatabaseToDisk();
     broadcastSyncEvent('USER_DELETED', { userId: id });
 
-    res.json({ success: true, version: db.version });
+    res.json({ success: true, version: db.version, users: db.users });
   } catch (err: any) {
     res.status(500).json({ error: err.message || 'Gagal menghapus pengguna' });
   }

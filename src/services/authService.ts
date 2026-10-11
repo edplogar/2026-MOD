@@ -59,20 +59,6 @@ export const INITIAL_HOTEL_USERS: UserProfile[] = [
     lastActive: 'Kemarin',
   },
   {
-    id: 'user-mod-candra',
-    username: 'candra',
-    password: 'logar123',
-    name: 'Candra',
-    email: 'candra@lombokgardenhotel.com',
-    role: 'MOD Officer',
-    department: 'Housekeeping',
-    avatar: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=150&auto=format&fit=crop&q=80',
-    phone: '+62 819-8765-4321',
-    status: 'active',
-    createdAt: '2025-12-06',
-    lastActive: '2 hari lalu',
-  },
-  {
     id: 'user-mod-komang',
     username: 'komang',
     password: 'logar123',
@@ -234,6 +220,30 @@ const SESSION_AUTH_USER_KEY = 'mod_report_session_active_user_v1';
 const SUPER_ADMIN_KEY_STORAGE = 'mod_report_admin_master_key_v1';
 const SUPER_ADMIN_PIN_STORAGE = 'mod_report_admin_pin_v1';
 const SUPER_ADMIN_SESSION_STORAGE = 'mod_report_admin_session_v1';
+const DELETED_USER_IDS_KEY = 'mod_report_deleted_user_ids_v1';
+
+export function getDeletedUserIds(): Set<string> {
+  try {
+    const raw = localStorage.getItem(DELETED_USER_IDS_KEY);
+    if (raw) {
+      const arr = JSON.parse(raw);
+      if (Array.isArray(arr)) return new Set(arr);
+    }
+  } catch {
+    // ignore
+  }
+  return new Set();
+}
+
+export function recordDeletedUserId(id: string): void {
+  try {
+    const set = getDeletedUserIds();
+    set.add(id);
+    localStorage.setItem(DELETED_USER_IDS_KEY, JSON.stringify(Array.from(set)));
+  } catch {
+    // ignore
+  }
+}
 
 // Default Master Credentials for Super Admin
 export const DEFAULT_SUPER_ADMIN_KEY = 'LOGAR-ADMIN-2026';
@@ -246,6 +256,7 @@ export const DEFAULT_SUPER_ADMIN_PIN = '778899';
 export function deduplicateUsers(users: UserProfile[]): UserProfile[] {
   if (!Array.isArray(users)) return [];
 
+  const deletedIds = getDeletedUserIds();
   const mapById = new Map<string, UserProfile>();
   const seenUsernames = new Map<string, string>(); // username -> canonical id
   const seenEmails = new Map<string, string>(); // email -> canonical id
@@ -253,6 +264,8 @@ export function deduplicateUsers(users: UserProfile[]): UserProfile[] {
   for (const rawUser of users) {
     if (!rawUser || !rawUser.id) continue;
     const cleanId = String(rawUser.id).trim();
+    if (deletedIds.has(cleanId)) continue;
+
     const cleanUsername = (rawUser.username || rawUser.email?.split('@')[0] || cleanId).trim().toLowerCase();
     const cleanEmail = (rawUser.email || '').trim().toLowerCase();
 
@@ -306,13 +319,14 @@ export function deduplicateUsers(users: UserProfile[]): UserProfile[] {
 }
 
 export function getAllUsers(): UserProfile[] {
+  const deletedIds = getDeletedUserIds();
   try {
     const raw = localStorage.getItem(ALL_USERS_STORAGE_KEY);
     if (raw) {
       const parsed: UserProfile[] = JSON.parse(raw);
       if (Array.isArray(parsed) && parsed.length > 0) {
-        // First deduplicate loaded records
-        const deduplicatedRaw = deduplicateUsers(parsed);
+        // First deduplicate loaded records and filter deleted ones
+        const deduplicatedRaw = deduplicateUsers(parsed).filter(u => !deletedIds.has(u.id));
 
         // Ensure all users have username and password
         let normalized = deduplicatedRaw.map(u => {
@@ -326,18 +340,7 @@ export function getAllUsers(): UserProfile[] {
           return updated;
         });
 
-        // Ensure newly registered initial hotel staff (e.g. Kresna, Sukmajaya) are present without duplicating
-        const existingIds = new Set(normalized.map(u => u.id));
-        const existingUsernames = new Set(normalized.map(u => (u.username || '').toLowerCase()));
-        const missingInitial = INITIAL_HOTEL_USERS.filter(u => 
-          !existingIds.has(u.id) && !existingUsernames.has(u.username.toLowerCase())
-        );
-
-        if (missingInitial.length > 0) {
-          normalized = [...normalized, ...missingInitial];
-        }
-
-        const finalUniqueUsers = deduplicateUsers(normalized);
+        const finalUniqueUsers = deduplicateUsers(normalized).filter(u => !deletedIds.has(u.id));
 
         // Always save clean deduplicated list
         saveAllUsers(finalUniqueUsers);
@@ -348,7 +351,7 @@ export function getAllUsers(): UserProfile[] {
     console.error('Failed reading user database', e);
   }
 
-  const initialUnique = deduplicateUsers(INITIAL_HOTEL_USERS);
+  const initialUnique = deduplicateUsers(INITIAL_HOTEL_USERS).filter(u => !deletedIds.has(u.id));
   saveAllUsers(initialUnique);
   return initialUnique;
 }
@@ -441,10 +444,20 @@ export function deleteUser(id: string): boolean {
     }
   }
 
+  // Blacklist ID so it can never be resurrected
+  recordDeletedUserId(id);
+
   const updated = users.filter(u => u.id !== id);
   saveAllUsers(updated);
 
-  // Real-time Firestore sync across all devices
+  // 1. Delete from Backend Express Server so database.json is saved to disk and SSE broadcast is emitted
+  fetch(`/api/users/${encodeURIComponent(id)}`, {
+    method: 'DELETE',
+  }).catch(err => {
+    console.warn('Real-time delete from server API deferred:', err);
+  });
+
+  // 2. Real-time Firestore sync across all devices
   deleteUserFromFirestore(id).catch(err => {
     console.warn('Real-time delete from Firestore deferred:', err);
   });
@@ -452,18 +465,26 @@ export function deleteUser(id: string): boolean {
   // If deleted user was active user, reset to GM
   const active = getStoredUser();
   if (active.id === id) {
-    saveStoredUser(updated[0] || INITIAL_HOTEL_USERS[1]);
+    saveStoredUser(updated[0] || INITIAL_HOTEL_USERS[0]);
   }
   const session = getSessionUser();
   if (session && session.id === id) {
     clearSessionUser();
   }
+
+  try {
+    window.dispatchEvent(new CustomEvent('logar_users_updated', { detail: updated }));
+  } catch {
+    // ignore
+  }
+
   return true;
 }
 
 export function setUsersFromCloud(cloudUsers: UserProfile[]): void {
   if (!cloudUsers || cloudUsers.length === 0) return;
-  const clean = deduplicateUsers(cloudUsers);
+  const deletedIds = getDeletedUserIds();
+  const clean = deduplicateUsers(cloudUsers).filter(u => !deletedIds.has(u.id));
   saveAllUsers(clean);
   try {
     window.dispatchEvent(new CustomEvent('logar_users_updated', { detail: clean }));
