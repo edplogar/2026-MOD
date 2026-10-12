@@ -766,26 +766,48 @@ export const ReportListView: React.FC<ReportListViewProps> = ({
                       </div>
                     </div>
 
-                    {/* Google Drive Folder Info */}
+                    {/* Google Drive Folder Info & Upload State */}
                     <div className="mt-2 px-2.5 py-1.5 rounded-lg bg-[#FAFBF5] border border-[#E2E7B8] flex items-center justify-between text-[10px]">
                       <span className="text-[#5B6713] truncate flex items-center gap-1 font-semibold">
                         <HardDrive className="w-3 h-3 text-[#7B8C1B] shrink-0" />
                         <span className="truncate">{pic.driveFolderName || getSystemSettings().driveFolderName}</span>
                       </span>
+                      {pic.uploadedToDrive ? (
+                        <span className="text-[9px] bg-[#95A823]/20 text-[#5B6713] font-bold px-1.5 py-0.5 rounded border border-[#95A823]/30 shrink-0">
+                          ✓ Terupload ke Drive
+                        </span>
+                      ) : (
+                        <span className="text-[9px] bg-amber-500/15 text-amber-800 font-bold px-1.5 py-0.5 rounded border border-amber-500/30 shrink-0">
+                          Server Lokal Hotel
+                        </span>
+                      )}
                     </div>
 
                     {/* Google Drive Link Action */}
                     <div className="mt-2.5 pt-2.5 border-t border-[#E2E7B8] flex items-center justify-between gap-1.5 flex-wrap">
-                      <a
-                        href={getDriveFolderUrl(pic.driveFolderId || getSystemSettings().driveFolderId)}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-[#95A823] hover:bg-[#82921D] text-white rounded-xl text-xs font-bold transition shadow-xs"
-                      >
-                        <FolderOpen className="w-3.5 h-3.5" />
-                        <span>Buka Folder Drive</span>
-                        <ExternalLink className="w-3 h-3" />
-                      </a>
+                      <div className="flex items-center gap-1.5">
+                        {pic.uploadedToDrive && pic.driveId && !pic.driveId.startsWith('pic-') && !pic.driveId.startsWith('file-') && !pic.driveId.startsWith('local-') ? (
+                          <a
+                            href={`https://drive.google.com/file/d/${pic.driveId}/view`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-[#95A823] hover:bg-[#82921D] text-white rounded-xl text-xs font-bold transition shadow-xs"
+                          >
+                            <ExternalLink className="w-3.5 h-3.5" />
+                            <span>Lihat di Drive</span>
+                          </a>
+                        ) : null}
+
+                        <a
+                          href={getDriveFolderUrl(pic.driveFolderId || getSystemSettings().driveFolderId)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-[#FAFBF5] hover:bg-[#EAEEBB] border border-[#D9DF98] text-[#5B6713] rounded-xl text-xs font-bold transition shadow-2xs"
+                        >
+                          <FolderOpen className="w-3.5 h-3.5 text-[#95A823]" />
+                          <span>Buka Folder</span>
+                        </a>
+                      </div>
 
                       {pic.thumbnailUrl && (
                         <button

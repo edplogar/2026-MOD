@@ -199,7 +199,7 @@ app.use('/uploads', express.static(UPLOADS_DIR));
 // Photo Upload Endpoint: Saves photo permanently to disk and uploads to Google Drive webhook if available
 app.post('/api/upload-photo', async (req: Request, res: Response) => {
   try {
-    const { base64Data, dataUrl, fileName, folderId } = req.body;
+    const { base64Data, dataUrl, fileName, folderId, webhookUrl } = req.body;
     let rawBase64 = base64Data || '';
     if (!rawBase64 && dataUrl && typeof dataUrl === 'string') {
       rawBase64 = dataUrl.includes('base64,') ? dataUrl.split('base64,')[1] : dataUrl;
@@ -209,7 +209,12 @@ app.post('/api/upload-photo', async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'Data foto base64 tidak ditemukan' });
     }
 
-    const cleanFolderId = folderId || db.settings.driveFolderId || '1LG_MOD_DRIVE_FOLDER_2026';
+    // Extract clean folder ID
+    let rawFolderId = String(folderId || db.settings.driveFolderId || '1LG_MOD_DRIVE_FOLDER_2026').trim();
+    const folderMatch = rawFolderId.match(/\/folders\/([a-zA-Z0-9_-]+)/);
+    const idParamMatch = rawFolderId.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+    const cleanFolderId = folderMatch ? folderMatch[1] : (idParamMatch ? idParamMatch[1] : rawFolderId.split('?')[0].replace(/\/+$/, ''));
+
     const timestamp = Date.now();
     const cleanFileName = (fileName || `MOD_INSPECTION_${timestamp}.jpg`).replace(/[^a-zA-Z0-9_.-]/g, '_');
     const localFileName = `photo_${timestamp}_${cleanFileName}`;
@@ -221,12 +226,16 @@ app.post('/api/upload-photo', async (req: Request, res: Response) => {
     const localUrl = `/uploads/${localFileName}`;
     let driveUrl = `https://drive.google.com/drive/folders/${cleanFolderId}`;
     let driveId = `file-${timestamp}`;
+    let uploadedToDrive = false;
+    let driveFolderName = db.settings.driveFolderName || 'HOTEL LOMBOK GARDEN / MOD REPORTS 2026';
+    let driveError: string | null = null;
 
-    // If Google Apps Script Webhook is configured, forward photo to Google Drive
-    const webhookUrl = db.settings.driveWebhookUrl;
-    if (webhookUrl && webhookUrl.trim().startsWith('http')) {
+    // Check if Webhook URL is provided in request or database settings
+    const targetWebhook = (webhookUrl || db.settings.driveWebhookUrl || '').trim();
+    if (targetWebhook && targetWebhook.startsWith('http')) {
       try {
-        const driveRes = await fetch(webhookUrl.trim(), {
+        console.log(`[Google Drive Upload] Forwarding photo "${cleanFileName}" to webhook...`);
+        const driveRes = await fetch(targetWebhook, {
           method: 'POST',
           headers: { 'Content-Type': 'text/plain;charset=utf-8' },
           body: JSON.stringify({
@@ -238,13 +247,29 @@ app.post('/api/upload-photo', async (req: Request, res: Response) => {
           }),
         });
 
-        const driveJson = await driveRes.json() as any;
+        const rawText = await driveRes.text();
+        let driveJson: any = null;
+        try {
+          driveJson = JSON.parse(rawText);
+        } catch {
+          console.warn('[Google Drive Webhook] Received non-JSON response:', rawText.slice(0, 150));
+        }
+
         if (driveJson && (driveJson.status === 'success' || driveJson.fileId)) {
           driveId = driveJson.fileId || driveId;
-          driveUrl = driveJson.fileUrl || `https://drive.google.com/file/d/${driveJson.fileId}/view`;
+          driveUrl = driveJson.fileUrl || `https://drive.google.com/file/d/${driveId}/view`;
+          uploadedToDrive = true;
+          if (driveJson.folderName) {
+            driveFolderName = driveJson.folderName;
+          }
+          console.log(`[Google Drive Upload] Success! File ID: ${driveId}`);
+        } else if (driveJson && driveJson.status === 'error') {
+          driveError = driveJson.message || 'Error dari Google Apps Script';
+          console.warn('[Google Drive Webhook] Error response:', driveError);
         }
-      } catch (webhookErr) {
-        console.warn('[Google Drive Webhook] Photo forwarding deferred:', webhookErr);
+      } catch (webhookErr: any) {
+        driveError = webhookErr.message || 'Gagal menghubungi Google Apps Script';
+        console.warn('[Google Drive Webhook] Forwarding error:', webhookErr);
       }
     }
 
@@ -254,12 +279,76 @@ app.post('/api/upload-photo', async (req: Request, res: Response) => {
       driveUrl,
       driveId,
       driveFolderId: cleanFolderId,
+      driveFolderName,
       fileName: cleanFileName,
+      uploadedToDrive,
+      driveError,
       sizeBytes: buffer.length,
     });
   } catch (err: any) {
     console.error('Error uploading photo:', err);
     return res.status(500).json({ error: err.message || 'Gagal menyimpan foto' });
+  }
+});
+
+// Test Google Drive Webhook Connection Endpoint
+app.post('/api/drive/test-connection', async (req: Request, res: Response) => {
+  try {
+    const { webhookUrl, folderId } = req.body;
+    const targetWebhook = (webhookUrl || db.settings.driveWebhookUrl || '').trim();
+    let rawFolderId = String(folderId || db.settings.driveFolderId || '').trim();
+    const folderMatch = rawFolderId.match(/\/folders\/([a-zA-Z0-9_-]+)/);
+    const idParamMatch = rawFolderId.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+    const cleanFolderId = folderMatch ? folderMatch[1] : (idParamMatch ? idParamMatch[1] : rawFolderId.split('?')[0].replace(/\/+$/, ''));
+
+    if (!targetWebhook || !targetWebhook.startsWith('http')) {
+      return res.status(400).json({
+        success: false,
+        message: 'Google Apps Script Webhook URL belum diatur (harus diawali https://script.google.com...).',
+      });
+    }
+
+    const driveRes = await fetch(targetWebhook, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({
+        action: 'test',
+        folderId: cleanFolderId,
+      }),
+    });
+
+    const rawText = await driveRes.text();
+    let driveJson: any = null;
+    try {
+      driveJson = JSON.parse(rawText);
+    } catch {
+      // non JSON
+    }
+
+    if (driveJson && (driveJson.status === 'success' || driveJson.message)) {
+      return res.json({
+        success: true,
+        message: driveJson.message || 'Koneksi ke Google Drive Webhook berhasil!',
+        folderName: driveJson.folderName || db.settings.driveFolderName,
+        folderId: cleanFolderId,
+      });
+    } else if (driveJson && driveJson.status === 'error') {
+      return res.status(400).json({
+        success: false,
+        message: driveJson.message || 'Akses ditolak oleh Google Apps Script.',
+      });
+    }
+
+    return res.json({
+      success: driveRes.ok,
+      message: driveRes.ok ? 'Webhook merespon dengan baik.' : `Status HTTP: ${driveRes.status}`,
+      raw: rawText.slice(0, 200),
+    });
+  } catch (err: any) {
+    return res.status(500).json({
+      success: false,
+      message: `Gagal menghubungi Webhook: ${err.message}`,
+    });
   }
 });
 

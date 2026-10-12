@@ -179,6 +179,19 @@ export function updateSystemSettings(updates: Partial<SystemSettings>, actor: st
     console.warn('Real-time sync to Firestore deferred:', err);
   });
 
+  // Sync to Express backend server /api/settings
+  try {
+    fetch('/api/settings', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updated),
+    }).catch(err => {
+      console.warn('Sync to backend /api/settings deferred:', err);
+    });
+  } catch {
+    // ignore
+  }
+
   return updated;
 }
 

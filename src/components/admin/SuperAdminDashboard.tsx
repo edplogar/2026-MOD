@@ -83,6 +83,7 @@ import {
   extractDriveFolderId, 
   getDriveFolderUrl, 
   syncAllPhotosToDrive, 
+  testGoogleDriveWebhook,
   GOOGLE_APPS_SCRIPT_CODE 
 } from '../../services/driveSyncService';
 
@@ -142,6 +143,27 @@ export const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({
   const [copiedScript, setCopiedScript] = useState(false);
   const [isSyncingPhotos, setIsSyncingPhotos] = useState(false);
   const [isChangeLogoModalOpen, setIsChangeLogoModalOpen] = useState(false);
+  const [isTestingDrive, setIsTestingDrive] = useState(false);
+  const [driveTestResult, setDriveTestResult] = useState<{ success: boolean; message: string; folderName?: string; folderId?: string } | null>(null);
+
+  const handleTestDriveConnection = async () => {
+    setIsTestingDrive(true);
+    setDriveTestResult(null);
+    try {
+      const res = await testGoogleDriveWebhook(settings.driveFolderId, settings.driveWebhookUrl || '');
+      setDriveTestResult(res);
+      if (res.success) {
+        showToast('✓ Koneksi ke Google Drive Webhook berhasil!');
+      }
+    } catch (err: any) {
+      setDriveTestResult({
+        success: false,
+        message: err.message || 'Gagal menghubungi Webhook Google Drive',
+      });
+    } finally {
+      setIsTestingDrive(false);
+    }
+  };
 
   // New location state
   const [newLocName, setNewLocName] = useState('');
@@ -1170,13 +1192,17 @@ export const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({
                     </div>
 
                     {/* Google Apps Script Webhook URL */}
-                    <div className="sm:col-span-2 bg-slate-900/60 p-3 rounded-xl border border-slate-700/60 space-y-2">
+                    <div className="sm:col-span-2 bg-slate-900/60 p-3.5 rounded-xl border border-slate-700/60 space-y-3">
                       <div className="flex items-center justify-between">
-                        <label className="text-slate-300 font-semibold flex items-center gap-1.5">
-                          <span>Google Apps Script Webhook URL (Opsional - Auto-Upload Nyata ke Drive)</span>
+                        <label className="text-slate-300 font-semibold flex items-center gap-1.5 text-xs">
+                          <span>Google Apps Script Webhook URL (Auto-Upload Nyata ke Folder Drive)</span>
                         </label>
-                        <span className="text-[10px] bg-slate-800 text-slate-300 px-2 py-0.5 rounded border border-slate-700">
-                          {settings.driveWebhookUrl ? 'Webhook Aktif' : 'Mode Tautan Langsung'}
+                        <span className={`text-[10px] px-2 py-0.5 rounded font-bold border ${
+                          settings.driveWebhookUrl && settings.driveWebhookUrl.startsWith('http')
+                            ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40' 
+                            : 'bg-amber-500/20 text-amber-300 border-amber-500/40'
+                        }`}>
+                          {settings.driveWebhookUrl && settings.driveWebhookUrl.startsWith('http') ? '✓ Webhook Diatur' : '⚠️ Belum Diatur (Foto di Server Lokal)'}
                         </span>
                       </div>
                       <input
@@ -1186,19 +1212,54 @@ export const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({
                         placeholder="https://script.google.com/macros/s/AKfycbx.../exec"
                         className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-xl font-mono text-xs text-white focus:outline-none focus:border-amber-500"
                       />
+
+                      {/* Drive Test Connection Result Banner */}
+                      {driveTestResult && (
+                        <div className={`p-3 rounded-xl border text-xs flex items-start gap-2.5 ${
+                          driveTestResult.success 
+                            ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-300' 
+                            : 'bg-rose-500/15 border-rose-500/40 text-rose-300'
+                        }`}>
+                          {driveTestResult.success ? (
+                            <CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5 text-emerald-400" />
+                          ) : (
+                            <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5 text-rose-400" />
+                          )}
+                          <div className="space-y-0.5 flex-1">
+                            <p className="font-bold">{driveTestResult.message}</p>
+                            {driveTestResult.folderName && (
+                              <p className="text-[11px] opacity-90 font-mono">
+                                Target: {driveTestResult.folderName} (ID: {driveTestResult.folderId})
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      )}
+
                       <div className="flex items-center justify-between flex-wrap gap-2 pt-1 text-[11px]">
-                        <p className="text-slate-400 text-[10px]">
-                          Jika diisi, foto yang diupload petugas akan otomatis terkirim langsung ke Google Drive hotel tanpa perlu login akun Google masing-masing staf.
+                        <p className="text-slate-400 text-[10px] max-w-md">
+                          Dengan webhook ini, setiap foto inspeksi yang diambil petugas langsung terkirim otomatis ke folder Google Drive hotel tanpa staf perlu login akun Google.
                         </p>
-                        <button
-                          type="button"
-                          onClick={handleSyncAllPhotosToDrive}
-                          disabled={isSyncingPhotos}
-                          className="px-3 py-1 bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 rounded-lg font-bold text-xs transition flex items-center gap-1 disabled:opacity-50 cursor-pointer"
-                        >
-                          <RefreshCw className={`w-3.5 h-3.5 ${isSyncingPhotos ? 'animate-spin' : ''}`} />
-                          <span>{isSyncingPhotos ? 'Menyinkronkan...' : 'Tautkan Semua Foto ke Folder Ini'}</span>
-                        </button>
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={handleTestDriveConnection}
+                            disabled={isTestingDrive || !settings.driveWebhookUrl}
+                            className="px-3 py-1.5 bg-blue-600/30 hover:bg-blue-600/50 text-blue-300 border border-blue-500/40 rounded-lg font-bold text-xs transition flex items-center gap-1.5 disabled:opacity-40 cursor-pointer"
+                          >
+                            <RefreshCw className={`w-3.5 h-3.5 ${isTestingDrive ? 'animate-spin' : ''}`} />
+                            <span>{isTestingDrive ? 'Menguji...' : '🧪 Uji Koneksi Drive'}</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={handleSyncAllPhotosToDrive}
+                            disabled={isSyncingPhotos}
+                            className="px-3 py-1.5 bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 rounded-lg font-bold text-xs transition flex items-center gap-1 disabled:opacity-50 cursor-pointer"
+                          >
+                            <RefreshCw className={`w-3.5 h-3.5 ${isSyncingPhotos ? 'animate-spin' : ''}`} />
+                            <span>{isSyncingPhotos ? 'Menyinkronkan...' : 'Unggah Ulang Semua Foto'}</span>
+                          </button>
+                        </div>
                       </div>
                     </div>
 

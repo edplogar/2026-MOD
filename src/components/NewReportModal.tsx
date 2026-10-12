@@ -223,14 +223,17 @@ export const NewReportModal: React.FC<NewReportModalProps> = ({
     const settings = getSystemSettings();
     const folderId = settings.driveFolderId || '1LG_MOD_DRIVE_FOLDER_2026';
     const folderName = settings.driveFolderName || 'HOTEL LOMBOK GARDEN / MOD REPORTS 2026';
-    const finalPictures = uploadedPictures.map(p => ({
-      ...p,
-      driveFolderId: p.driveFolderId || folderId,
-      driveFolderName: p.driveFolderName || folderName,
-      driveUrl: p.driveUrl || getDriveFolderUrl(folderId),
-      uploadedToDrive: true,
-      uploadStatus: 'synced' as const,
-    }));
+    const finalPictures = uploadedPictures.map(p => {
+      const isReallyOnDrive = Boolean(p.uploadedToDrive && p.driveId && !p.driveId.startsWith('pic-') && !p.driveId.startsWith('file-') && !p.driveId.startsWith('local-'));
+      return {
+        ...p,
+        driveFolderId: p.driveFolderId || folderId,
+        driveFolderName: p.driveFolderName || folderName,
+        driveUrl: p.driveUrl || getDriveFolderUrl(folderId),
+        uploadedToDrive: isReallyOnDrive,
+        uploadStatus: isReallyOnDrive ? ('synced' as const) : ('local' as const),
+      };
+    });
 
     const newReport: ModReportItem = {
       id: `rep-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
@@ -609,17 +612,24 @@ export const NewReportModal: React.FC<NewReportModalProps> = ({
 
                       {/* Google Drive Folder Sync Badge */}
                       <div className="flex items-center justify-between pt-1.5 border-t border-[#EAEED0] text-[10px]">
-                        <span className="inline-flex items-center gap-1 font-semibold text-[#5B6713] truncate">
-                          <CheckCircle2 className="w-3.5 h-3.5 text-[#95A823] shrink-0" />
-                          <span className="truncate">Folder Drive: <strong className="text-[#231E1B]">{pic.driveFolderName || getSystemSettings().driveFolderName}</strong></span>
-                        </span>
+                        {pic.uploadedToDrive ? (
+                          <span className="inline-flex items-center gap-1 font-semibold text-[#5B6713] truncate">
+                            <CheckCircle2 className="w-3.5 h-3.5 text-[#95A823] shrink-0" />
+                            <span className="truncate">Tersimpan di Google Drive</span>
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 font-semibold text-[#8C5311] truncate" title="Foto disimpan di server lokal hotel. Akan otomatis diupload ke Google Drive saat Webhook aktif.">
+                            <HardDrive className="w-3.5 h-3.5 text-[#E68A00] shrink-0" />
+                            <span className="truncate">Server Lokal (Siap ke Drive)</span>
+                          </span>
+                        )}
                         <a
                           href={pic.driveUrl || getDriveFolderUrl(pic.driveFolderId || getSystemSettings().driveFolderId)}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="inline-flex items-center gap-1 text-[#7B8C1B] hover:text-[#5B6713] font-bold shrink-0 ml-1 hover:underline"
                         >
-                          <span>Buka Drive</span>
+                          <span>{pic.uploadedToDrive ? 'Lihat File' : 'Buka Folder'}</span>
                           <ExternalLink className="w-3 h-3" />
                         </a>
                       </div>
