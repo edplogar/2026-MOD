@@ -209,7 +209,7 @@ export default function App() {
     window.addEventListener('offline', handleOffline);
 
     const handleSettingsUpdated = () => {
-      setSyncState(getSyncState(reports));
+      setSyncState(prev => ({ ...prev }));
     };
     window.addEventListener('logar_settings_updated', handleSettingsUpdated);
 
@@ -227,7 +227,7 @@ export default function App() {
       window.removeEventListener('logar_settings_updated', handleSettingsUpdated);
       window.removeEventListener('logar_reports_updated', handleReportsUpdated);
     };
-  }, [reports, showToast]);
+  }, [showToast]);
 
   // Cloud sync trigger
   const handleTriggerSync = useCallback(async () => {
@@ -253,19 +253,29 @@ export default function App() {
 
   // Add new report
   const handleAddReport = (newReport: ModReportItem) => {
-    const updated = [newReport, ...reports];
-    setReports(updated);
-    saveReports(updated);
-    setSyncState(getSyncState(updated));
+    saveReports([newReport, ...reports]);
+    const merged = loadReports();
+    setReports(merged);
+    setSyncState(getSyncState(merged));
 
     // Instant server-side multi-device synchronization via REST API
     fetch('/api/reports', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ report: newReport }),
-    }).catch(err => {
-      console.warn('Real-time server sync deferred:', err);
-    });
+    })
+      .then(res => res.json())
+      .then(data => {
+        if (data && Array.isArray(data.reports)) {
+          saveReports(data.reports);
+          const updatedServerReports = loadReports();
+          setReports(updatedServerReports);
+          setSyncState(getSyncState(updatedServerReports));
+        }
+      })
+      .catch(err => {
+        console.warn('Real-time server sync deferred:', err);
+      });
 
     // Real-time Firestore sync across all devices & IPs
     saveReportToFirestore(newReport).catch(err => {

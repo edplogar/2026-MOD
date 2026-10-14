@@ -1,6 +1,6 @@
 {
-  "version": 6,
-  "updatedAt": "2026-10-14T05:38:55.901Z",
+  "version": 9,
+  "updatedAt": "2026-10-14T06:31:18.878Z",
   "users": [
     {
       "id": "user-mod-rusdi",
@@ -10,8 +10,8 @@
       "role": "MOD Officer",
       "department": "Security",
       "alternatePasswords": [
-        "rusdi123",
         "logar123",
+        "rusdi123",
         "rusdi2026"
       ],
       "mergedUserIds": [
@@ -22,7 +22,7 @@
       "email": "rusdi@lombokgardenhotel.com",
       "phone": "+62 819-3903-5566",
       "createdAt": "2025-12-01",
-      "lastActive": "Hari ini"
+      "lastActive": "14.25 hari ini"
     },
     {
       "id": "user-superadmin",
@@ -36,7 +36,7 @@
       "phone": "+62 811-390-999",
       "status": "active",
       "createdAt": "2025-12-01",
-      "lastActive": "Baru saja",
+      "lastActive": "14.25 hari ini",
       "alternatePasswords": [
         "admin123"
       ],
@@ -305,7 +305,1310 @@
       ]
     }
   ],
-  "reports": [],
+  "reports": [
+    {
+      "id": "rep-199-mv7qen2t",
+      "timestamp": "9/30/2026 19:00:35",
+      "date": "9/30/2026",
+      "time": "19:02:00",
+      "officerName": "I Wayan kresna",
+      "location": "Deluxe building area",
+      "areaGroup": "Deluxe & Rooms",
+      "problem": "Clean",
+      "followUpDept": "Housekeeping",
+      "status": "Aman",
+      "priority": "Rendah",
+      "pictures": [],
+      "shift": "Sore (15:00 - 23:00)",
+      "synced": true,
+      "syncedAt": "9/30/2026 19:00:35"
+    },
+    {
+      "id": "rep-198-mv7qen2t",
+      "timestamp": "9/30/2026 18:59:41",
+      "date": "9/30/2026",
+      "time": "19:00:00",
+      "officerName": "I Wayan kresna",
+      "location": "Pool timur",
+      "areaGroup": "Pool & Garden",
+      "problem": "Aman",
+      "followUpDept": "None",
+      "status": "Aman",
+      "priority": "Rendah",
+      "pictures": [],
+      "shift": "Sore (15:00 - 23:00)",
+      "synced": true,
+      "syncedAt": "9/30/2026 18:59:41"
+    },
+    {
+      "id": "rep-197-mv7qen2t",
+      "timestamp": "9/30/2026 18:31:31",
+      "date": "9/30/2026",
+      "time": "18:32:00",
+      "officerName": "I Wayan kresna",
+      "location": "Pool baret",
+      "areaGroup": "Pool & Garden",
+      "problem": "Aman",
+      "followUpDept": "None",
+      "status": "Aman",
+      "priority": "Rendah",
+      "pictures": [],
+      "shift": "Sore (15:00 - 23:00)",
+      "synced": true,
+      "syncedAt": "9/30/2026 18:31:31"
+    },
+    {
+      "id": "rep-196-mv7qen2t",
+      "timestamp": "9/30/2026 18:30:54",
+      "date": "9/30/2026",
+      "time": "18:30:00",
+      "officerName": "I Wayan kresna",
+      "location": "Lotus cafe",
+      "areaGroup": "Public Area",
+      "problem": "Aman",
+      "followUpDept": "None",
+      "status": "Aman",
+      "priority": "Rendah",
+      "pictures": [],
+      "shift": "Sore (15:00 - 23:00)",
+      "synced": true,
+      "syncedAt": "9/30/2026 18:30:54"
+    },
+    {
+      "id": "rep-195-mv7qen2t",
+      "timestamp": "9/30/2026 18:26:09",
+      "date": "9/30/2026",
+      "time": "18:25:00",
+      "officerName": "I Wayan kresna",
+      "location": "Parkiran depan",
+      "areaGroup": "Lobby & Parking",
+      "problem": "Aman",
+      "followUpDept": "Security",
+      "status": "Aman",
+      "priority": "Rendah",
+      "pictures": [],
+      "shift": "Sore (15:00 - 23:00)",
+      "synced": true,
+      "syncedAt": "9/30/2026 18:26:09"
+    },
+    {
+      "id": "rep-194-mv7qen2t",
+      "timestamp": "9/30/2026 17:47:08",
+      "date": "9/30/2026",
+      "time": "17:47:00",
+      "officerName": "I Wayan kresna",
+      "location": "Kitchen",
+      "areaGroup": "F&B & Resto",
+      "problem": "Aman",
+      "followUpDept": "None",
+      "status": "Aman",
+      "priority": "Rendah",
+      "pictures": [],
+      "shift": "Sore (15:00 - 23:00)",
+      "synced": true,
+      "syncedAt": "9/30/2026 17:47:08"
+    },
+    {
+      "id": "rep-193-mv7qen2t",
+      "timestamp": "9/30/2026 17:46:14",
+      "date": "9/30/2026",
+      "time": "17:45:00",
+      "officerName": "I Wayan kresna",
+      "location": "Flamboyan resto",
+      "areaGroup": "F&B & Resto",
+      "problem": "Clean",
+      "followUpDept": "Housekeeping",
+      "status": "Aman",
+      "priority": "Rendah",
+      "pictures": [],
+      "shift": "Sore (15:00 - 23:00)",
+      "synced": true,
+      "syncedAt": "9/30/2026 17:46:14"
+    },
+    {
+      "id": "rep-192-mv7qen2t",
+      "timestamp": "9/29/2026 9:59:50",
+      "date": "9/28/2026",
+      "time": "13:10:00",
+      "officerName": "defi",
+      "location": "melati resto",
+      "areaGroup": "F&B & Resto",
+      "problem": "area kotor dan ada kursi yang patah",
+      "followUpDept": "Housekeeping",
+      "status": "Perlu Follow Up",
+      "priority": "Tinggi",
+      "pictures": [
+        {
+          "id": "pic-192-0",
+          "driveUrl": "https://drive.google.com/open?id=1m1fs0Aale3XkoP9EVXNH61tcpOTvQjb5",
+          "driveId": "1m1fs0Aale3XkoP9EVXNH61tcpOTvQjb5",
+          "name": "Bukti_melati_resto_1.jpg",
+          "originalSizeBytes": 2450000,
+          "compressedSizeBytes": 135000,
+          "compressionRatio": 94
+        }
+      ],
+      "shift": "Pagi (07:00 - 15:00)",
+      "synced": true,
+      "syncedAt": "9/29/2026 9:59:50"
+    },
+    {
+      "id": "rep-191-mv7qen2t",
+      "timestamp": "9/23/2026 21:11:55",
+      "date": "9/23/2026",
+      "time": "21:10:00",
+      "officerName": "Ayu Sugiyarti",
+      "location": "Hydrant setiap lantai",
+      "areaGroup": "Deluxe & Rooms",
+      "problem": "Perlu di cat ulang agar terlihat lebih fresh karena banyak yg sudah karatan",
+      "followUpDept": "Engineering",
+      "status": "Selesai",
+      "priority": "Tinggi",
+      "pictures": [
+        {
+          "id": "pic-191-0",
+          "driveUrl": "https://drive.google.com/open?id=1otuPaZZOdmO3h4KVNBf0GX1L3nAVMBxw",
+          "driveId": "1otuPaZZOdmO3h4KVNBf0GX1L3nAVMBxw",
+          "name": "Bukti_Hydrant_setiap__1.jpg",
+          "originalSizeBytes": 2450000,
+          "compressedSizeBytes": 135000,
+          "compressionRatio": 94
+        },
+        {
+          "id": "pic-191-1",
+          "driveUrl": "https://drive.google.com/open?id=1RJGi8YCneHznSAOoTn3zCf3hZYl4lrnk",
+          "driveId": "1RJGi8YCneHznSAOoTn3zCf3hZYl4lrnk",
+          "name": "Bukti_Hydrant_setiap__2.jpg",
+          "originalSizeBytes": 2800000,
+          "compressedSizeBytes": 160000,
+          "compressionRatio": 94
+        }
+      ],
+      "shift": "Sore (15:00 - 23:00)",
+      "synced": true,
+      "syncedAt": "9/23/2026 21:11:55"
+    },
+    {
+      "id": "rep-190-mv7qen2t",
+      "timestamp": "9/14/2026 18:28:38",
+      "date": "9/14/2026",
+      "time": "18:28:00",
+      "officerName": "Ayu Sugiyarti",
+      "location": "Pool dpn kmr deluxe",
+      "areaGroup": "Deluxe & Rooms",
+      "problem": "Lantai perlu disikat karena terlalu licin berbahaya utk tamu",
+      "followUpDept": "Housekeeping",
+      "status": "Perlu Follow Up",
+      "priority": "Tinggi",
+      "pictures": [
+        {
+          "id": "pic-190-0",
+          "driveUrl": "https://drive.google.com/open?id=1vb5j0RvYS1AuuL1F1cYMG59SylgW3iAu",
+          "driveId": "1vb5j0RvYS1AuuL1F1cYMG59SylgW3iAu",
+          "name": "Bukti_Pool_dpn_kmr_de_1.jpg",
+          "originalSizeBytes": 2450000,
+          "compressedSizeBytes": 135000,
+          "compressionRatio": 94
+        },
+        {
+          "id": "pic-190-1",
+          "driveUrl": "https://drive.google.com/open?id=15obYfWCDopE7F_42qncEfplU7IlmICpA",
+          "driveId": "15obYfWCDopE7F_42qncEfplU7IlmICpA",
+          "name": "Bukti_Pool_dpn_kmr_de_2.jpg",
+          "originalSizeBytes": 2800000,
+          "compressedSizeBytes": 160000,
+          "compressionRatio": 94
+        }
+      ],
+      "shift": "Sore (15:00 - 23:00)",
+      "synced": true,
+      "syncedAt": "9/14/2026 18:28:38"
+    },
+    {
+      "id": "rep-189-mv7qen2t",
+      "timestamp": "9/11/2026 15:29:28",
+      "date": "9/11/2026",
+      "time": "15:26:00",
+      "officerName": "Iwayan suardana",
+      "location": "Resto , pantry , kitchen , steward",
+      "areaGroup": "F&B & Resto",
+      "problem": "Area pantry ada pemasangan keramik dinding",
+      "followUpDept": "Engineering",
+      "status": "Perlu Follow Up",
+      "priority": "Normal",
+      "pictures": [
+        {
+          "id": "pic-189-0",
+          "driveUrl": "https://drive.google.com/open?id=1GMDhd7gxpak955-4iCvuhuLxsPj_vXxS",
+          "driveId": "1GMDhd7gxpak955-4iCvuhuLxsPj_vXxS",
+          "name": "Bukti_Resto_,_pantry__1.jpg",
+          "originalSizeBytes": 2450000,
+          "compressedSizeBytes": 135000,
+          "compressionRatio": 94
+        },
+        {
+          "id": "pic-189-1",
+          "driveUrl": "https://drive.google.com/open?id=1xiRjuAir93Weod4rF4fDNmG8zvqeFcnw",
+          "driveId": "1xiRjuAir93Weod4rF4fDNmG8zvqeFcnw",
+          "name": "Bukti_Resto_,_pantry__2.jpg",
+          "originalSizeBytes": 2800000,
+          "compressedSizeBytes": 160000,
+          "compressionRatio": 94
+        }
+      ],
+      "shift": "Sore (15:00 - 23:00)",
+      "synced": true,
+      "syncedAt": "9/11/2026 15:29:28"
+    },
+    {
+      "id": "rep-185-mv7qen2t",
+      "timestamp": "8/14/2026 18:23:45",
+      "date": "8/14/2026",
+      "time": "15:30:00",
+      "officerName": "Ayu Sugiyarti",
+      "location": "Kolam renang belakang",
+      "areaGroup": "Pool & Garden",
+      "problem": "Lantai pinggir kolam perlu disikat karena lumat dan licin berbahaya utk tamu",
+      "followUpDept": "Housekeeping",
+      "status": "Perlu Follow Up",
+      "priority": "Tinggi",
+      "pictures": [
+        {
+          "id": "pic-185-0",
+          "driveUrl": "https://drive.google.com/open?id=1zgCrSTZoCxmJ8feqsBPoaMVaGxr2ZYM0",
+          "driveId": "1zgCrSTZoCxmJ8feqsBPoaMVaGxr2ZYM0",
+          "name": "Bukti_Kolam_renang_be_1.jpg",
+          "originalSizeBytes": 2450000,
+          "compressedSizeBytes": 135000,
+          "compressionRatio": 94
+        },
+        {
+          "id": "pic-185-1",
+          "driveUrl": "https://drive.google.com/open?id=12aWMuhwtIUtEMz_PXvUWJxTwtOiufNxk",
+          "driveId": "12aWMuhwtIUtEMz_PXvUWJxTwtOiufNxk",
+          "name": "Bukti_Kolam_renang_be_2.jpg",
+          "originalSizeBytes": 2800000,
+          "compressedSizeBytes": 160000,
+          "compressionRatio": 94
+        }
+      ],
+      "shift": "Sore (15:00 - 23:00)",
+      "synced": true,
+      "syncedAt": "8/14/2026 18:23:45"
+    },
+    {
+      "id": "rep-183-mv7qen2s",
+      "timestamp": "7/25/2026 15:28:16",
+      "date": "7/25/2026",
+      "time": "15:00:00",
+      "officerName": "Ayu Sugiyarti",
+      "location": "Lantai kolam dpn kamar deluxe",
+      "areaGroup": "Deluxe & Rooms",
+      "problem": "Perlu disikat karena berlumut dan sangat licin bisa berbahaya utk tamu",
+      "followUpDept": "Housekeeping",
+      "status": "Perlu Follow Up",
+      "priority": "Tinggi",
+      "pictures": [
+        {
+          "id": "pic-183-0",
+          "driveUrl": "https://drive.google.com/open?id=1ZbLygFQCGoicgNtWYoExGyuUTr8REWDP",
+          "driveId": "1ZbLygFQCGoicgNtWYoExGyuUTr8REWDP",
+          "name": "Bukti_Lantai_kolam_dp_1.jpg",
+          "originalSizeBytes": 2450000,
+          "compressedSizeBytes": 135000,
+          "compressionRatio": 94
+        }
+      ],
+      "shift": "Sore (15:00 - 23:00)",
+      "synced": true,
+      "syncedAt": "7/25/2026 15:28:16"
+    },
+    {
+      "id": "rep-182-mv7qen2s",
+      "timestamp": "7/15/2026 20:00:00",
+      "date": "7/15/2026",
+      "time": "16:02:00",
+      "officerName": "Ayu Sugiyarti",
+      "location": "Samping kamar 277",
+      "areaGroup": "Deluxe & Rooms",
+      "problem": "Lembab Jamur perlu dibersihkan",
+      "followUpDept": "Engineering",
+      "status": "Perlu Follow Up",
+      "priority": "Normal",
+      "pictures": [
+        {
+          "id": "pic-182-0",
+          "driveUrl": "https://drive.google.com/open?id=1emEzbQ3C5pthspyn1allZnCyZsm_hsJP",
+          "driveId": "1emEzbQ3C5pthspyn1allZnCyZsm_hsJP",
+          "name": "Bukti_Samping_kamar_2_1.jpg",
+          "originalSizeBytes": 2450000,
+          "compressedSizeBytes": 135000,
+          "compressionRatio": 94
+        }
+      ],
+      "shift": "Sore (15:00 - 23:00)",
+      "synced": true,
+      "syncedAt": "7/15/2026 20:00:00"
+    },
+    {
+      "id": "rep-180-mv7qen2s",
+      "timestamp": "6/26/2026 21:09:35",
+      "date": "6/26/2026",
+      "time": "21:08:00",
+      "officerName": "Ayu Sugiyarti",
+      "location": "Lantai 3",
+      "areaGroup": "Deluxe & Rooms",
+      "problem": "Banyak tembok lembab dan jamur harus segera di cat ulang",
+      "followUpDept": "Engineering",
+      "status": "Perlu Follow Up",
+      "priority": "Normal",
+      "pictures": [
+        {
+          "id": "pic-180-0",
+          "driveUrl": "https://drive.google.com/open?id=1FAQ5kUsAHIcjc3loWuDk4GE4poHU4EiS",
+          "driveId": "1FAQ5kUsAHIcjc3loWuDk4GE4poHU4EiS",
+          "name": "Bukti_Lantai_3_1.jpg",
+          "originalSizeBytes": 2450000,
+          "compressedSizeBytes": 135000,
+          "compressionRatio": 94
+        },
+        {
+          "id": "pic-180-1",
+          "driveUrl": "https://drive.google.com/open?id=1DH0T-Z9-de2dqZin94g5kdHbkAQEzeny",
+          "driveId": "1DH0T-Z9-de2dqZin94g5kdHbkAQEzeny",
+          "name": "Bukti_Lantai_3_2.jpg",
+          "originalSizeBytes": 2800000,
+          "compressedSizeBytes": 160000,
+          "compressionRatio": 94
+        }
+      ],
+      "shift": "Sore (15:00 - 23:00)",
+      "synced": true,
+      "syncedAt": "6/26/2026 21:09:35"
+    },
+    {
+      "id": "rep-179-mv7qen2s",
+      "timestamp": "6/18/2026 14:17:39",
+      "date": "6/18/2026",
+      "time": "14:15:00",
+      "officerName": "I Komang Artana",
+      "location": "Toilet alamanda",
+      "areaGroup": "Public Area",
+      "problem": "Pasang jamperan pipa pembuangan",
+      "followUpDept": "Engineering",
+      "status": "Perlu Follow Up",
+      "priority": "Normal",
+      "pictures": [
+        {
+          "id": "pic-179-0",
+          "driveUrl": "https://drive.google.com/open?id=1og_OrEDh8C7W3q_Zt8oTNfUVYCA2w8-z",
+          "driveId": "1og_OrEDh8C7W3q_Zt8oTNfUVYCA2w8-z",
+          "name": "Bukti_Toilet_alamanda_1.jpg",
+          "originalSizeBytes": 2450000,
+          "compressedSizeBytes": 135000,
+          "compressionRatio": 94
+        }
+      ],
+      "shift": "Pagi (07:00 - 15:00)",
+      "synced": true,
+      "syncedAt": "6/18/2026 14:17:39"
+    },
+    {
+      "id": "rep-178-mv7qen2s",
+      "timestamp": "6/15/2026 18:29:36",
+      "date": "6/15/2026",
+      "time": "18:26:00",
+      "officerName": "Ayu Sugiyarti",
+      "location": "Lt.5",
+      "areaGroup": "Public Area",
+      "problem": "Lampu tangga dari lt 4 ke 5 paling redup, perlu dibersihkan kaca dari luar",
+      "followUpDept": "Engineering",
+      "status": "Perlu Follow Up",
+      "priority": "Normal",
+      "pictures": [
+        {
+          "id": "pic-178-0",
+          "driveUrl": "https://drive.google.com/open?id=1Sa7vhvIFZJ8UY4pjsMONvEm8K29EfSuw",
+          "driveId": "1Sa7vhvIFZJ8UY4pjsMONvEm8K29EfSuw",
+          "name": "Bukti_Lt.5_1.jpg",
+          "originalSizeBytes": 2450000,
+          "compressedSizeBytes": 135000,
+          "compressionRatio": 94
+        },
+        {
+          "id": "pic-178-1",
+          "driveUrl": "https://drive.google.com/open?id=1ZjvDHprPia26Wq2m85NL-4Qb-fkJMlup",
+          "driveId": "1ZjvDHprPia26Wq2m85NL-4Qb-fkJMlup",
+          "name": "Bukti_Lt.5_2.jpg",
+          "originalSizeBytes": 2800000,
+          "compressedSizeBytes": 160000,
+          "compressionRatio": 94
+        }
+      ],
+      "shift": "Sore (15:00 - 23:00)",
+      "synced": true,
+      "syncedAt": "6/15/2026 18:29:36"
+    },
+    {
+      "id": "rep-177-mv7qen2s",
+      "timestamp": "6/10/2026 21:27:38",
+      "date": "6/10/2026",
+      "time": "21:26:00",
+      "officerName": "Ayu Sugiyarti",
+      "location": "Depan kamar 512",
+      "areaGroup": "Deluxe & Rooms",
+      "problem": "Lantai keramik pecah",
+      "followUpDept": "Engineering",
+      "status": "Perlu Follow Up",
+      "priority": "Tinggi",
+      "pictures": [
+        {
+          "id": "pic-177-0",
+          "driveUrl": "https://drive.google.com/open?id=1vSOHBY5VbvrZHSC0DMdww9xobBDSAhD9",
+          "driveId": "1vSOHBY5VbvrZHSC0DMdww9xobBDSAhD9",
+          "name": "Bukti_Depan_kamar_512_1.jpg",
+          "originalSizeBytes": 2450000,
+          "compressedSizeBytes": 135000,
+          "compressionRatio": 94
+        }
+      ],
+      "shift": "Sore (15:00 - 23:00)",
+      "synced": true,
+      "syncedAt": "6/10/2026 21:27:38"
+    },
+    {
+      "id": "rep-175-mv7qen2s",
+      "timestamp": "5/26/2026 20:23:46",
+      "date": "5/26/2026",
+      "time": "20:22:00",
+      "officerName": "Ayu Sugiyarti",
+      "location": "Lantai 2",
+      "areaGroup": "Deluxe & Rooms",
+      "problem": "Tembok lembab dan berjamur perlu di cat ulang",
+      "followUpDept": "Engineering",
+      "status": "Perlu Follow Up",
+      "priority": "Normal",
+      "pictures": [
+        {
+          "id": "pic-175-0",
+          "driveUrl": "https://drive.google.com/open?id=1pteac3gay1SK22OS7D88W8lUid4XQJ8l",
+          "driveId": "1pteac3gay1SK22OS7D88W8lUid4XQJ8l",
+          "name": "Bukti_Lantai_2_1.jpg",
+          "originalSizeBytes": 2450000,
+          "compressedSizeBytes": 135000,
+          "compressionRatio": 94
+        }
+      ],
+      "shift": "Sore (15:00 - 23:00)",
+      "synced": true,
+      "syncedAt": "5/26/2026 20:23:46"
+    },
+    {
+      "id": "rep-174-mv7qen2s",
+      "timestamp": "5/17/2026 16:45:04",
+      "date": "5/17/2026",
+      "time": "16:43:00",
+      "officerName": "Rusdi",
+      "location": "Kitchen",
+      "areaGroup": "F&B & Resto",
+      "problem": "Bocor di salah satu kompor kitchen, sdh di cb tangani tetapi belum bisa, sementara tdk di pakai dulu",
+      "followUpDept": "Engineering",
+      "status": "Perlu Follow Up",
+      "priority": "Tinggi",
+      "pictures": [
+        {
+          "id": "pic-174-0",
+          "driveUrl": "https://drive.google.com/open?id=12jiAVqNfMC-s6u_nk1KC-W97Kx_Tyhfo",
+          "driveId": "12jiAVqNfMC-s6u_nk1KC-W97Kx_Tyhfo",
+          "name": "Bukti_Kitchen_1.jpg",
+          "originalSizeBytes": 2450000,
+          "compressedSizeBytes": 135000,
+          "compressionRatio": 94
+        }
+      ],
+      "shift": "Sore (15:00 - 23:00)",
+      "synced": true,
+      "syncedAt": "5/17/2026 16:45:04"
+    },
+    {
+      "id": "rep-173-mv7qen2s",
+      "timestamp": "5/17/2026 16:07:31",
+      "date": "5/17/2026",
+      "time": "16:07:00",
+      "officerName": "Rusdi",
+      "location": "Kamar 266",
+      "areaGroup": "Deluxe & Rooms",
+      "problem": "Kunci pengaman atau dpuble lock manual pintu ini cukup lama tidak ada",
+      "followUpDept": "Engineering",
+      "status": "Aman",
+      "priority": "Rendah",
+      "pictures": [
+        {
+          "id": "pic-173-0",
+          "driveUrl": "https://drive.google.com/open?id=1fIg5WR5Uzf5BF0uvnEHaVx6KElYW2Q41",
+          "driveId": "1fIg5WR5Uzf5BF0uvnEHaVx6KElYW2Q41",
+          "name": "Bukti_Kamar_266_1.jpg",
+          "originalSizeBytes": 2450000,
+          "compressedSizeBytes": 135000,
+          "compressionRatio": 94
+        }
+      ],
+      "shift": "Sore (15:00 - 23:00)",
+      "synced": true,
+      "syncedAt": "5/17/2026 16:07:31"
+    },
+    {
+      "id": "rep-172-mv7qen2s",
+      "timestamp": "5/12/2026 16:48:24",
+      "date": "5/12/2026",
+      "time": "16:47:00",
+      "officerName": "I Komang Artana",
+      "location": "Kitchen",
+      "areaGroup": "F&B & Resto",
+      "problem": "Freezer ganti kompresor",
+      "followUpDept": "Engineering",
+      "status": "Perlu Follow Up",
+      "priority": "Normal",
+      "pictures": [
+        {
+          "id": "pic-172-0",
+          "driveUrl": "https://drive.google.com/open?id=1NUA4jKFBGLIu_FXATaBpBpTBxX7QqCGQ",
+          "driveId": "1NUA4jKFBGLIu_FXATaBpBpTBxX7QqCGQ",
+          "name": "Bukti_Kitchen_1.jpg",
+          "originalSizeBytes": 2450000,
+          "compressedSizeBytes": 135000,
+          "compressionRatio": 94
+        }
+      ],
+      "shift": "Sore (15:00 - 23:00)",
+      "synced": true,
+      "syncedAt": "5/12/2026 16:48:24"
+    },
+    {
+      "id": "rep-169-mv7qen2s",
+      "timestamp": "4/24/2026 19:52:16",
+      "date": "4/24/2026",
+      "time": "19:50:00",
+      "officerName": "Ayu Sugiyarti",
+      "location": "Tembok kamar antara 276 dan 277",
+      "areaGroup": "Deluxe & Rooms",
+      "problem": "Tembok lembab",
+      "followUpDept": "Engineering",
+      "status": "Perlu Follow Up",
+      "priority": "Normal",
+      "pictures": [
+        {
+          "id": "pic-169-0",
+          "driveUrl": "https://drive.google.com/open?id=1JWm4U4Lz5qy-wh4GYVWgOEseK6lf1wNS",
+          "driveId": "1JWm4U4Lz5qy-wh4GYVWgOEseK6lf1wNS",
+          "name": "Bukti_Tembok_kamar_an_1.jpg",
+          "originalSizeBytes": 2450000,
+          "compressedSizeBytes": 135000,
+          "compressionRatio": 94
+        }
+      ],
+      "shift": "Sore (15:00 - 23:00)",
+      "synced": true,
+      "syncedAt": "4/24/2026 19:52:16"
+    },
+    {
+      "id": "rep-168-mv7qen2s",
+      "timestamp": "4/16/2026 18:42:59",
+      "date": "4/16/2026",
+      "time": "18:38:00",
+      "officerName": "Ayu Sugiyarti",
+      "location": "Lantai 3",
+      "areaGroup": "Deluxe & Rooms",
+      "problem": "Tembok berjamur dan lembab, lampu koridor kuning sebaiknya diganti putih agar lebih terang",
+      "followUpDept": "Engineering",
+      "status": "Perlu Follow Up",
+      "priority": "Normal",
+      "pictures": [
+        {
+          "id": "pic-168-0",
+          "driveUrl": "https://drive.google.com/open?id=1n6u50uG0rvM2rw2M7FD_C2wMlPKL3lLE",
+          "driveId": "1n6u50uG0rvM2rw2M7FD_C2wMlPKL3lLE",
+          "name": "Bukti_Lantai_3_1.jpg",
+          "originalSizeBytes": 2450000,
+          "compressedSizeBytes": 135000,
+          "compressionRatio": 94
+        },
+        {
+          "id": "pic-168-1",
+          "driveUrl": "https://drive.google.com/open?id=1b0evH8g6Qi4nldCwtNdS48J0IC5Vw9KE",
+          "driveId": "1b0evH8g6Qi4nldCwtNdS48J0IC5Vw9KE",
+          "name": "Bukti_Lantai_3_2.jpg",
+          "originalSizeBytes": 2800000,
+          "compressedSizeBytes": 160000,
+          "compressionRatio": 94
+        }
+      ],
+      "shift": "Sore (15:00 - 23:00)",
+      "synced": true,
+      "syncedAt": "4/16/2026 18:42:59"
+    },
+    {
+      "id": "rep-164-mv7qen2s",
+      "timestamp": "3/27/2026 17:28:37",
+      "date": "3/27/2026",
+      "time": "17:26:00",
+      "officerName": "Ayu Sugiyarti",
+      "location": "Toilet depan mushola dibawah parigata hall",
+      "areaGroup": "Meeting & Ballrooms",
+      "problem": "Air menggenang di lantai toilet, perlu lebih sering dicek utk dibersihkan",
+      "followUpDept": "Housekeeping",
+      "status": "Perlu Follow Up",
+      "priority": "Normal",
+      "pictures": [
+        {
+          "id": "pic-164-0",
+          "driveUrl": "https://drive.google.com/open?id=1zGf27j9wkjOsr67tjPdjui05Jwh2Fd_r",
+          "driveId": "1zGf27j9wkjOsr67tjPdjui05Jwh2Fd_r",
+          "name": "Bukti_Toilet_depan_mu_1.jpg",
+          "originalSizeBytes": 2450000,
+          "compressedSizeBytes": 135000,
+          "compressionRatio": 94
+        },
+        {
+          "id": "pic-164-1",
+          "driveUrl": "https://drive.google.com/open?id=1UEP_3Ku5LFxwQqSXiofulO8RWPxfXvnV",
+          "driveId": "1UEP_3Ku5LFxwQqSXiofulO8RWPxfXvnV",
+          "name": "Bukti_Toilet_depan_mu_2.jpg",
+          "originalSizeBytes": 2800000,
+          "compressedSizeBytes": 160000,
+          "compressionRatio": 94
+        }
+      ],
+      "shift": "Sore (15:00 - 23:00)",
+      "synced": true,
+      "syncedAt": "3/27/2026 17:28:37"
+    },
+    {
+      "id": "rep-163-mv7qen2s",
+      "timestamp": "3/27/2026 17:25:44",
+      "date": "3/27/2026",
+      "time": "17:24:00",
+      "officerName": "Ayu Sugiyarti",
+      "location": "Room 139",
+      "areaGroup": "Public Area",
+      "problem": "Kamar tidak bisa ditutup kembali, pada saat showing AC tidak bisa dinyalakan",
+      "followUpDept": "Engineering",
+      "status": "Perlu Follow Up",
+      "priority": "Normal",
+      "pictures": [
+        {
+          "id": "pic-163-0",
+          "driveUrl": "https://drive.google.com/open?id=1Q-0ww9vJ0v3dNq4KOh5Sjy0Godq2FzZC",
+          "driveId": "1Q-0ww9vJ0v3dNq4KOh5Sjy0Godq2FzZC",
+          "name": "Bukti_Room_139_1.jpg",
+          "originalSizeBytes": 2450000,
+          "compressedSizeBytes": 135000,
+          "compressionRatio": 94
+        },
+        {
+          "id": "pic-163-1",
+          "driveUrl": "https://drive.google.com/open?id=1sOwCVz_XCCc24dDjozIkQfRT0A_kQLdC",
+          "driveId": "1sOwCVz_XCCc24dDjozIkQfRT0A_kQLdC",
+          "name": "Bukti_Room_139_2.jpg",
+          "originalSizeBytes": 2800000,
+          "compressedSizeBytes": 160000,
+          "compressionRatio": 94
+        }
+      ],
+      "shift": "Sore (15:00 - 23:00)",
+      "synced": true,
+      "syncedAt": "3/27/2026 17:25:44"
+    },
+    {
+      "id": "rep-162-mv7qen2s",
+      "timestamp": "3/26/2026 13:34:16",
+      "date": "3/26/2026",
+      "time": "13:33:00",
+      "officerName": "Candra",
+      "location": "Area restoran Flamboyan",
+      "areaGroup": "F&B & Resto",
+      "problem": "Tembok jamur",
+      "followUpDept": "Engineering",
+      "status": "Perlu Follow Up",
+      "priority": "Normal",
+      "pictures": [
+        {
+          "id": "pic-162-0",
+          "driveUrl": "https://drive.google.com/open?id=1cyVA6UjngMWnDXxq9G3MJWNfg6_XAQ54",
+          "driveId": "1cyVA6UjngMWnDXxq9G3MJWNfg6_XAQ54",
+          "name": "Bukti_Area_restoran_F_1.jpg",
+          "originalSizeBytes": 2450000,
+          "compressedSizeBytes": 135000,
+          "compressionRatio": 94
+        }
+      ],
+      "shift": "Pagi (07:00 - 15:00)",
+      "synced": true,
+      "syncedAt": "3/26/2026 13:34:16"
+    },
+    {
+      "id": "rep-161-mv7qen2s",
+      "timestamp": "3/17/2026 18:40:02",
+      "date": "3/17/2026",
+      "time": "18:37:00",
+      "officerName": "Ayu Sugiyarti",
+      "location": "Flamboyan Resto",
+      "areaGroup": "F&B & Resto",
+      "problem": "Iftar pindah ke flamboyan resto, tidak ada suara azan dan music",
+      "followUpDept": "Engineering",
+      "status": "Aman",
+      "priority": "Rendah",
+      "pictures": [
+        {
+          "id": "pic-161-0",
+          "driveUrl": "https://drive.google.com/open?id=1TSddBJ-QKGWixAyKueJHinLZ_V72TIjh",
+          "driveId": "1TSddBJ-QKGWixAyKueJHinLZ_V72TIjh",
+          "name": "Bukti_Flamboyan_Resto_1.jpg",
+          "originalSizeBytes": 2450000,
+          "compressedSizeBytes": 135000,
+          "compressionRatio": 94
+        },
+        {
+          "id": "pic-161-1",
+          "driveUrl": "https://drive.google.com/open?id=1akAjtYudnA8QqO7ez4TnAAUl33gi4KU2",
+          "driveId": "1akAjtYudnA8QqO7ez4TnAAUl33gi4KU2",
+          "name": "Bukti_Flamboyan_Resto_2.jpg",
+          "originalSizeBytes": 2800000,
+          "compressedSizeBytes": 160000,
+          "compressionRatio": 94
+        }
+      ],
+      "shift": "Sore (15:00 - 23:00)",
+      "synced": true,
+      "syncedAt": "3/17/2026 18:40:02"
+    },
+    {
+      "id": "rep-160-mv7qen2s",
+      "timestamp": "3/15/2026 11:13:01",
+      "date": "3/15/2026",
+      "time": "11:10:00",
+      "officerName": "made sardika",
+      "location": "area ganzet hote",
+      "areaGroup": "Public Area",
+      "problem": "pengecekan dan pergantian oli mesin  berkala oleh team  engginering",
+      "followUpDept": "Engineering",
+      "status": "Perlu Follow Up",
+      "priority": "Normal",
+      "pictures": [
+        {
+          "id": "pic-160-0",
+          "driveUrl": "https://drive.google.com/open?id=1a0GhMSr9iDhSmqZH3c18X5htZaS7lnE3",
+          "driveId": "1a0GhMSr9iDhSmqZH3c18X5htZaS7lnE3",
+          "name": "Bukti_area_ganzet_hot_1.jpg",
+          "originalSizeBytes": 2450000,
+          "compressedSizeBytes": 135000,
+          "compressionRatio": 94
+        },
+        {
+          "id": "pic-160-1",
+          "driveUrl": "https://drive.google.com/open?id=1LzGdph5lsFzF4LQyzwNjEj6fwilPXDqZ",
+          "driveId": "1LzGdph5lsFzF4LQyzwNjEj6fwilPXDqZ",
+          "name": "Bukti_area_ganzet_hot_2.jpg",
+          "originalSizeBytes": 2800000,
+          "compressedSizeBytes": 160000,
+          "compressionRatio": 94
+        }
+      ],
+      "shift": "Pagi (07:00 - 15:00)",
+      "synced": true,
+      "syncedAt": "3/15/2026 11:13:01"
+    },
+    {
+      "id": "rep-156-mv7qen2s",
+      "timestamp": "2/21/2026 0:20:40",
+      "date": "2/20/2026",
+      "time": "17:50:00",
+      "officerName": "Naning",
+      "location": "Area Building",
+      "areaGroup": "Public Area",
+      "problem": "Bbrp area lobby kotor abu rokok dan bbrp area tangga jg kotor",
+      "followUpDept": "Housekeeping",
+      "status": "Perlu Follow Up",
+      "priority": "Normal",
+      "pictures": [
+        {
+          "id": "pic-156-0",
+          "driveUrl": "https://drive.google.com/open?id=1bNFvDA1jiNx7gZpALCCb0Brnp7Ry5wQS",
+          "driveId": "1bNFvDA1jiNx7gZpALCCb0Brnp7Ry5wQS",
+          "name": "Bukti_Area_Building_1.jpg",
+          "originalSizeBytes": 2450000,
+          "compressedSizeBytes": 135000,
+          "compressionRatio": 94
+        },
+        {
+          "id": "pic-156-1",
+          "driveUrl": "https://drive.google.com/open?id=1O962DQ76e8_m1kJc00ryQGgjfzBLOmn5",
+          "driveId": "1O962DQ76e8_m1kJc00ryQGgjfzBLOmn5",
+          "name": "Bukti_Area_Building_2.jpg",
+          "originalSizeBytes": 2800000,
+          "compressedSizeBytes": 160000,
+          "compressionRatio": 94
+        }
+      ],
+      "shift": "Sore (15:00 - 23:00)",
+      "synced": true,
+      "syncedAt": "2/21/2026 0:20:40"
+    },
+    {
+      "id": "rep-214-mv7qen2t",
+      "timestamp": "10/3/2026 9:30:15",
+      "date": "10/3/2026",
+      "time": "9:15:00",
+      "officerName": "I Komang Artana",
+      "location": "Garden & Venue Marakesh",
+      "areaGroup": "Pool & Garden",
+      "problem": "Penyiraman tanaman taman tengah dan pembersihan dedaunan selesai",
+      "followUpDept": "Housekeeping",
+      "status": "Aman",
+      "priority": "Rendah",
+      "pictures": [
+        {
+          "id": "pic-214-0",
+          "driveUrl": "https://drive.google.com/open?id=1ZbLygFQCGoicgNtWYoExGyuUTr8REWDP",
+          "driveId": "1ZbLygFQCGoicgNtWYoExGyuUTr8REWDP",
+          "name": "Bukti_Garden_&_Venue__1.jpg",
+          "originalSizeBytes": 2450000,
+          "compressedSizeBytes": 135000,
+          "compressionRatio": 94
+        }
+      ],
+      "shift": "Pagi (07:00 - 15:00)",
+      "synced": true,
+      "syncedAt": "10/3/2026 9:30:15"
+    },
+    {
+      "id": "rep-213-mv7qen2t",
+      "timestamp": "10/3/2026 7:45:00",
+      "date": "10/3/2026",
+      "time": "7:30:00",
+      "officerName": "Candra",
+      "location": "Lobby & Reception",
+      "areaGroup": "Lobby & Parking",
+      "problem": "Pagi hari tertib briefing pagi staf FO dan security lancar",
+      "followUpDept": "None",
+      "status": "Perlu Follow Up",
+      "priority": "Normal",
+      "pictures": [],
+      "shift": "Pagi (07:00 - 15:00)",
+      "synced": true,
+      "syncedAt": "10/3/2026 7:45:00"
+    },
+    {
+      "id": "rep-217-mv7qen2t",
+      "timestamp": "10/3/2026 15:40:00",
+      "date": "10/3/2026",
+      "time": "15:20:00",
+      "officerName": "Ahmad Mujaddid",
+      "location": "Parkir Karyawan & Loker",
+      "areaGroup": "Lobby & Parking",
+      "problem": "Pemeriksaan loker karyawan bersih dan tertib security siaga",
+      "followUpDept": "None",
+      "status": "Perlu Follow Up",
+      "priority": "Normal",
+      "pictures": [],
+      "shift": "Sore (15:00 - 23:00)",
+      "synced": true,
+      "syncedAt": "10/3/2026 15:40:00"
+    },
+    {
+      "id": "rep-216-mv7qen2t",
+      "timestamp": "10/3/2026 13:50:00",
+      "date": "10/3/2026",
+      "time": "13:30:00",
+      "officerName": "I Wayan kresna",
+      "location": "Restoran Flamboyan",
+      "areaGroup": "F&B & Resto",
+      "problem": "Pembersihan pasca lunch selesai tepat waktu",
+      "followUpDept": "None",
+      "status": "Selesai",
+      "priority": "Normal",
+      "pictures": [],
+      "shift": "Pagi (07:00 - 15:00)",
+      "synced": true,
+      "syncedAt": "10/3/2026 13:50:00"
+    },
+    {
+      "id": "rep-215-mv7qen2t",
+      "timestamp": "10/3/2026 11:20:00",
+      "date": "10/3/2026",
+      "time": "11:00:00",
+      "officerName": "Ayu Sugiyarti",
+      "location": "Deluxe Building Lantai 4",
+      "areaGroup": "Deluxe & Rooms",
+      "problem": "Keramik tepi tangga lantai 4 retak halus perlu perbaikan semen",
+      "followUpDept": "Engineering",
+      "status": "Perlu Follow Up",
+      "priority": "Normal",
+      "pictures": [
+        {
+          "id": "pic-215-0",
+          "driveUrl": "https://drive.google.com/open?id=1vSOHBY5VbvrZHSC0DMdww9xobBDSAhD9",
+          "driveId": "1vSOHBY5VbvrZHSC0DMdww9xobBDSAhD9",
+          "name": "Bukti_Deluxe_Building_1.jpg",
+          "originalSizeBytes": 2450000,
+          "compressedSizeBytes": 135000,
+          "compressionRatio": 94
+        }
+      ],
+      "shift": "Pagi (07:00 - 15:00)",
+      "synced": true,
+      "syncedAt": "10/3/2026 11:20:00"
+    },
+    {
+      "id": "rep-208-mv7qen2t",
+      "timestamp": "10/2/2026 8:30:00",
+      "date": "10/2/2026",
+      "time": "8:15:00",
+      "officerName": "I GD Sukmajaya",
+      "location": "Genset Hotel",
+      "areaGroup": "Back of House",
+      "problem": "Pengecekan parameter bahan bakar dan voltase genset normal",
+      "followUpDept": "None",
+      "status": "Perlu Follow Up",
+      "priority": "Normal",
+      "pictures": [],
+      "shift": "Pagi (07:00 - 15:00)",
+      "synced": true,
+      "syncedAt": "10/2/2026 8:30:00"
+    },
+    {
+      "id": "rep-212-mv7qen2t",
+      "timestamp": "10/2/2026 20:10:00",
+      "date": "10/2/2026",
+      "time": "20:00:00",
+      "officerName": "Iwayan Suardana",
+      "location": "Swimming Pool Timur",
+      "areaGroup": "Pool & Garden",
+      "problem": "Penerangan kolam timur terang dan kondisi aman",
+      "followUpDept": "None",
+      "status": "Aman",
+      "priority": "Rendah",
+      "pictures": [],
+      "shift": "Sore (15:00 - 23:00)",
+      "synced": true,
+      "syncedAt": "10/2/2026 20:10:00"
+    },
+    {
+      "id": "rep-211-mv7qen2t",
+      "timestamp": "10/2/2026 16:45:10",
+      "date": "10/2/2026",
+      "time": "16:30:00",
+      "officerName": "Defi",
+      "location": "Gym & Spa",
+      "areaGroup": "Public Area",
+      "problem": "Fasilitas gym bersih dan handuk tamu tertata rapi",
+      "followUpDept": "None",
+      "status": "Perlu Follow Up",
+      "priority": "Normal",
+      "pictures": [],
+      "shift": "Sore (15:00 - 23:00)",
+      "synced": true,
+      "syncedAt": "10/2/2026 16:45:10"
+    },
+    {
+      "id": "rep-210-mv7qen2t",
+      "timestamp": "10/2/2026 14:20:00",
+      "date": "10/2/2026",
+      "time": "14:00:00",
+      "officerName": "Made Sardika",
+      "location": "Cottage Pool Access",
+      "areaGroup": "Pool & Garden",
+      "problem": "Pengecekan privasi dan kebersihan area kolam cottage aman",
+      "followUpDept": "None",
+      "status": "Aman",
+      "priority": "Rendah",
+      "pictures": [],
+      "shift": "Pagi (07:00 - 15:00)",
+      "synced": true,
+      "syncedAt": "10/2/2026 14:20:00"
+    },
+    {
+      "id": "rep-209-mv7qen2t",
+      "timestamp": "10/2/2026 10:15:33",
+      "date": "10/2/2026",
+      "time": "10:00:00",
+      "officerName": "Ayu Sugiyarti",
+      "location": "Deluxe Building Lantai 3",
+      "areaGroup": "Deluxe & Rooms",
+      "problem": "Handle pintu darurat lantai 3 agak longgar perlu dikencangkan",
+      "followUpDept": "Engineering",
+      "status": "Perlu Follow Up",
+      "priority": "Normal",
+      "pictures": [
+        {
+          "id": "pic-209-0",
+          "driveUrl": "https://drive.google.com/open?id=1ZjvDHprPia26Wq2m85NL-4Qb-fkJMlup",
+          "driveId": "1ZjvDHprPia26Wq2m85NL-4Qb-fkJMlup",
+          "name": "Bukti_Deluxe_Building_1.jpg",
+          "originalSizeBytes": 2450000,
+          "compressedSizeBytes": 135000,
+          "compressionRatio": 94
+        }
+      ],
+      "shift": "Pagi (07:00 - 15:00)",
+      "synced": true,
+      "syncedAt": "10/2/2026 10:15:33"
+    },
+    {
+      "id": "rep-202-mv7qen2t",
+      "timestamp": "10/1/2026 9:15:00",
+      "date": "10/1/2026",
+      "time": "9:00:00",
+      "officerName": "Iwayan Suardana",
+      "location": "Swimming Pool Barat",
+      "areaGroup": "Pool & Garden",
+      "problem": "Air kolam jernih dan area sunbed rapi",
+      "followUpDept": "None",
+      "status": "Perlu Follow Up",
+      "priority": "Normal",
+      "pictures": [],
+      "shift": "Pagi (07:00 - 15:00)",
+      "synced": true,
+      "syncedAt": "10/1/2026 9:15:00"
+    },
+    {
+      "id": "rep-201-mv7qen2t",
+      "timestamp": "10/1/2026 8:45:12",
+      "date": "10/1/2026",
+      "time": "8:30:00",
+      "officerName": "Iwayan Suardana",
+      "location": "Restoran Flamboyan",
+      "areaGroup": "F&B & Resto",
+      "problem": "Kondisi buffet sarapan bersih dan staf standby",
+      "followUpDept": "None",
+      "status": "Perlu Follow Up",
+      "priority": "Normal",
+      "pictures": [],
+      "shift": "Pagi (07:00 - 15:00)",
+      "synced": true,
+      "syncedAt": "10/1/2026 8:45:12"
+    },
+    {
+      "id": "rep-200-mv7qen2t",
+      "timestamp": "10/1/2026 8:15:30",
+      "date": "10/1/2026",
+      "time": "8:00:00",
+      "officerName": "Iwayan Suardana",
+      "location": "Lobby & Reception",
+      "areaGroup": "Lobby & Parking",
+      "problem": "Pengecekan area lobby tamu check-in lancar kondisi aman dan bersih",
+      "followUpDept": "None",
+      "status": "Aman",
+      "priority": "Rendah",
+      "pictures": [],
+      "shift": "Pagi (07:00 - 15:00)",
+      "synced": true,
+      "syncedAt": "10/1/2026 8:15:30"
+    },
+    {
+      "id": "rep-207-mv7qen2t",
+      "timestamp": "10/1/2026 19:45:00",
+      "date": "10/1/2026",
+      "time": "19:30:00",
+      "officerName": "I Wayan kresna",
+      "location": "Lotus Cafe & Angkringan",
+      "areaGroup": "Public Area",
+      "problem": "Suasana live music tertib dan area bersih",
+      "followUpDept": "None",
+      "status": "Perlu Follow Up",
+      "priority": "Normal",
+      "pictures": [],
+      "shift": "Sore (15:00 - 23:00)",
+      "synced": true,
+      "syncedAt": "10/1/2026 19:45:00"
+    },
+    {
+      "id": "rep-206-mv7qen2t",
+      "timestamp": "10/1/2026 16:30:19",
+      "date": "10/1/2026",
+      "time": "16:15:00",
+      "officerName": "Ayu Sugiyarti",
+      "location": "Parkiran Depan & Drop Zone",
+      "areaGroup": "Lobby & Parking",
+      "problem": "Arus lalu lintas kendaraan tamu rapi dan aman",
+      "followUpDept": "None",
+      "status": "Aman",
+      "priority": "Rendah",
+      "pictures": [],
+      "shift": "Sore (15:00 - 23:00)",
+      "synced": true,
+      "syncedAt": "10/1/2026 16:30:19"
+    },
+    {
+      "id": "rep-205-mv7qen2t",
+      "timestamp": "10/1/2026 14:10:05",
+      "date": "10/1/2026",
+      "time": "14:00:00",
+      "officerName": "I Komang Artana",
+      "location": "Melati Ballroom 1 & 2",
+      "areaGroup": "Meeting & Ballrooms",
+      "problem": "Persiapan settingan meeting instansi NTB aman terkendali",
+      "followUpDept": "None",
+      "status": "Aman",
+      "priority": "Rendah",
+      "pictures": [],
+      "shift": "Pagi (07:00 - 15:00)",
+      "synced": true,
+      "syncedAt": "10/1/2026 14:10:05"
+    },
+    {
+      "id": "rep-204-mv7qen2t",
+      "timestamp": "10/1/2026 11:05:22",
+      "date": "10/1/2026",
+      "time": "10:45:00",
+      "officerName": "Candra",
+      "location": "Kitchen & Pantry",
+      "areaGroup": "F&B & Resto",
+      "problem": "Kondisi kebersihan kitchen aman dan ventilasi berfungsi normal",
+      "followUpDept": "None",
+      "status": "Aman",
+      "priority": "Rendah",
+      "pictures": [],
+      "shift": "Pagi (07:00 - 15:00)",
+      "synced": true,
+      "syncedAt": "10/1/2026 11:05:22"
+    },
+    {
+      "id": "rep-203-mv7qen2t",
+      "timestamp": "10/1/2026 10:20:45",
+      "date": "10/1/2026",
+      "time": "10:00:00",
+      "officerName": "Candra",
+      "location": "Deluxe Building Lantai 2",
+      "areaGroup": "Deluxe & Rooms",
+      "problem": "Lampu koridor depan kamar 214 mati perlu penggantian bohlam",
+      "followUpDept": "Engineering",
+      "status": "Perlu Follow Up",
+      "priority": "Tinggi",
+      "pictures": [
+        {
+          "id": "pic-203-0",
+          "driveUrl": "https://drive.google.com/open?id=1Sa7vhvIFZJ8UY4pjsMONvEm8K29EfSuw",
+          "driveId": "1Sa7vhvIFZJ8UY4pjsMONvEm8K29EfSuw",
+          "name": "Bukti_Deluxe_Building_1.jpg",
+          "originalSizeBytes": 2450000,
+          "compressedSizeBytes": 135000,
+          "compressionRatio": 94
+        }
+      ],
+      "shift": "Pagi (07:00 - 15:00)",
+      "synced": true,
+      "syncedAt": "10/1/2026 10:20:45"
+    },
+    {
+      "id": "rep-152-mv7qen2s",
+      "timestamp": "1/25/2026 8:20:56",
+      "date": "1/25/2026",
+      "time": "8:19:00",
+      "officerName": "Candra",
+      "location": "Area parkir sepeda motor tamu",
+      "areaGroup": "Lobby & Parking",
+      "problem": "Sudah ditemukan kunci sepeda motor tamu Beat putih DK 2338 ACC",
+      "followUpDept": "Security",
+      "status": "Selesai",
+      "priority": "Normal",
+      "pictures": [
+        {
+          "id": "pic-152-0",
+          "driveUrl": "https://drive.google.com/open?id=1JlaFyseQ12dC0x_rche_fnwXAgfj5MJx",
+          "driveId": "1JlaFyseQ12dC0x_rche_fnwXAgfj5MJx",
+          "name": "Bukti_Area_parkir_sep_1.jpg",
+          "originalSizeBytes": 2450000,
+          "compressedSizeBytes": 135000,
+          "compressionRatio": 94
+        }
+      ],
+      "shift": "Pagi (07:00 - 15:00)",
+      "synced": true,
+      "syncedAt": "1/25/2026 8:20:56"
+    },
+    {
+      "id": "rep-151-mv7qen2s",
+      "timestamp": "1/25/2026 8:19:10",
+      "date": "1/25/2026",
+      "time": "7:59:00",
+      "officerName": "Candra",
+      "location": "Area genset",
+      "areaGroup": "Back of House",
+      "problem": "Sampah pohon dari Lombok raya penuh, Sehingga kalau ada angin besar terbang ke area parkir Lombok garden",
+      "followUpDept": "None",
+      "status": "Perlu Follow Up",
+      "priority": "Normal",
+      "pictures": [
+        {
+          "id": "pic-151-0",
+          "driveUrl": "https://drive.google.com/open?id=1e9WHx1r7nWW09fw4nWTsxgNerV6wbuUR",
+          "driveId": "1e9WHx1r7nWW09fw4nWTsxgNerV6wbuUR",
+          "name": "Bukti_Area_genset_1.jpg",
+          "originalSizeBytes": 2450000,
+          "compressedSizeBytes": 135000,
+          "compressionRatio": 94
+        }
+      ],
+      "shift": "Pagi (07:00 - 15:00)",
+      "synced": true,
+      "syncedAt": "1/25/2026 8:19:10"
+    },
+    {
+      "id": "rep-150-mv7qen2s",
+      "timestamp": "1/20/2026 14:12:22",
+      "date": "1/20/2026",
+      "time": "13:52:00",
+      "officerName": "Candra",
+      "location": "Parkir sepeda motor karyawan",
+      "areaGroup": "Lobby & Parking",
+      "problem": "Sampah kontainer penuh",
+      "followUpDept": "Housekeeping",
+      "status": "Perlu Follow Up",
+      "priority": "Normal",
+      "pictures": [
+        {
+          "id": "pic-150-0",
+          "driveUrl": "https://drive.google.com/open?id=1nr1ofpZHQY0gawuIu1NfAKqPxjvpSp81",
+          "driveId": "1nr1ofpZHQY0gawuIu1NfAKqPxjvpSp81",
+          "name": "Bukti_Parkir_sepeda_m_1.jpg",
+          "originalSizeBytes": 2450000,
+          "compressedSizeBytes": 135000,
+          "compressionRatio": 94
+        }
+      ],
+      "shift": "Pagi (07:00 - 15:00)",
+      "synced": true,
+      "syncedAt": "1/20/2026 14:12:22"
+    },
+    {
+      "id": "rep-149-mv7qen2r",
+      "timestamp": "1/11/2026 11:00:05",
+      "date": "1/11/2026",
+      "time": "10:50:00",
+      "officerName": "I Komang Artana",
+      "location": "Pool akses area",
+      "areaGroup": "Pool & Garden",
+      "problem": "Pergantian kran wastafel 217",
+      "followUpDept": "Engineering",
+      "status": "Perlu Follow Up",
+      "priority": "Normal",
+      "pictures": [
+        {
+          "id": "pic-149-0",
+          "driveUrl": "https://drive.google.com/open?id=1iX53yPsFQa-hnZZ1g1nJ1IDLOBYD0AL0",
+          "driveId": "1iX53yPsFQa-hnZZ1g1nJ1IDLOBYD0AL0",
+          "name": "Bukti_Pool_akses_area_1.jpg",
+          "originalSizeBytes": 2450000,
+          "compressedSizeBytes": 135000,
+          "compressionRatio": 94
+        }
+      ],
+      "shift": "Pagi (07:00 - 15:00)",
+      "synced": true,
+      "syncedAt": "1/11/2026 11:00:05"
+    }
+  ],
   "settings": {
     "hotelName": "Hotel Lombok Garden",
     "hotelAddress": "Jl. Bung Karno No. 7, Mataram, Nusa Tenggara Barat 83127",

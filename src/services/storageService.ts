@@ -29,8 +29,58 @@ export function sanitizeReportsForStorage(reports: ModReportItem[]): ModReportIt
   }));
 }
 
+export function mergeReports(existing: ModReportItem[], incoming: ModReportItem[]): ModReportItem[] {
+  const map = new Map<string, ModReportItem>();
+
+  const getReportKey = (r: ModReportItem) => {
+    if (r.id) return r.id;
+    return `${r.date || ''}_${r.time || ''}_${r.location || ''}_${r.officerName || ''}`.replace(/\s+/g, '_');
+  };
+
+  if (Array.isArray(existing)) {
+    existing.forEach(r => {
+      if (r) {
+        const key = getReportKey(r);
+        map.set(key, r);
+      }
+    });
+  }
+
+  if (Array.isArray(incoming)) {
+    incoming.forEach(r => {
+      if (r) {
+        const key = getReportKey(r);
+        const prev = map.get(key);
+        if (!prev) {
+          map.set(key, r);
+        } else {
+          const mergedPics = (r.pictures && r.pictures.length > 0) ? r.pictures : (prev.pictures || []);
+          map.set(key, {
+            ...prev,
+            ...r,
+            id: prev.id || r.id,
+            pictures: mergedPics,
+            status: r.status || prev.status,
+            resolvedAt: r.resolvedAt || prev.resolvedAt,
+            resolvedBy: r.resolvedBy || prev.resolvedBy,
+          });
+        }
+      }
+    });
+  }
+
+  const mergedList = Array.from(map.values());
+  mergedList.sort((a, b) => {
+    const dtA = `${a.date || ''}T${a.time || '00:00'}`;
+    const dtB = `${b.date || ''}T${b.time || '00:00'}`;
+    return dtB.localeCompare(dtA);
+  });
+
+  return mergedList;
+}
+
 export function loadReports(): ModReportItem[] {
-  if (memoryReportsCache !== null) {
+  if (memoryReportsCache !== null && memoryReportsCache.length > 0) {
     return memoryReportsCache;
   }
 
@@ -44,31 +94,38 @@ export function loadReports(): ModReportItem[] {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw !== null) {
       const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed)) {
-        if (parsed.length === 0) {
-          memoryReportsCache = [];
-          return [];
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        const valid = parsed.filter(r => !r || r.id?.startsWith('rep-') || isDateOnOrAfterOctober2026(r.date || r.timestamp));
+        if (valid.length > 0) {
+          memoryReportsCache = valid;
+          return valid;
         }
-        const valid = parsed.filter(r => isDateOnOrAfterOctober2026(r.date || r.timestamp));
-        memoryReportsCache = valid;
-        return valid;
       }
     }
   } catch (e) {
     console.warn('Recovering reports from cache due to read error:', e);
   }
 
-  memoryReportsCache = [];
-  return [];
+  const initial = parseCSVToReports(RAW_MOD_CSV);
+  memoryReportsCache = initial;
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(initial));
+  } catch {
+    // ignore
+  }
+  return initial;
 }
 
 export function saveReports(reports: ModReportItem[]): void {
   if (!Array.isArray(reports)) return;
 
-  // Always keep in-memory cache up-to-date with full data
-  memoryReportsCache = reports;
+  const currentCache = memoryReportsCache || [];
+  const merged = mergeReports(currentCache, reports);
 
-  const sanitized = sanitizeReportsForStorage(reports);
+  // Always keep in-memory cache up-to-date with full data
+  memoryReportsCache = merged;
+
+  const sanitized = sanitizeReportsForStorage(merged);
 
   // Tier 1: Try saving full sanitized dataset
   try {

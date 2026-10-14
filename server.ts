@@ -120,6 +120,13 @@ try {
         db.users = mergeAndDeduplicateUsers(JSON.parse(JSON.stringify(INITIAL_HOTEL_USERS)), deletedSet);
       }
 
+      // Ensure reports exist and merge with default initial reports
+      if (!Array.isArray(db.reports)) {
+        db.reports = [];
+      }
+      const initialCsvReports = parseCSVToReports(RAW_MOD_CSV);
+      db.reports = mergeReports(initialCsvReports, db.reports);
+
       saveDatabaseToDisk();
       console.log(`[DB] Database loaded from disk. Users: ${db.users.length}, Reports: ${db.reports.length}, Version: ${db.version}`);
     } else {
@@ -632,6 +639,56 @@ app.post('/api/admin/master-key', (req: Request, res: Response) => {
   }
 });
 
+export function mergeReports(existing: ModReportItem[], incoming: ModReportItem[]): ModReportItem[] {
+  const map = new Map<string, ModReportItem>();
+
+  const getReportKey = (r: ModReportItem) => {
+    if (r.id) return r.id;
+    return `${r.date || ''}_${r.time || ''}_${r.location || ''}_${r.officerName || ''}`.replace(/\s+/g, '_');
+  };
+
+  if (Array.isArray(existing)) {
+    existing.forEach(r => {
+      if (r) {
+        const key = getReportKey(r);
+        map.set(key, r);
+      }
+    });
+  }
+
+  if (Array.isArray(incoming)) {
+    incoming.forEach(r => {
+      if (r) {
+        const key = getReportKey(r);
+        const prev = map.get(key);
+        if (!prev) {
+          map.set(key, r);
+        } else {
+          const mergedPics = (r.pictures && r.pictures.length > 0) ? r.pictures : (prev.pictures || []);
+          map.set(key, {
+            ...prev,
+            ...r,
+            id: prev.id || r.id,
+            pictures: mergedPics,
+            status: r.status || prev.status,
+            resolvedAt: r.resolvedAt || prev.resolvedAt,
+            resolvedBy: r.resolvedBy || prev.resolvedBy,
+          });
+        }
+      }
+    });
+  }
+
+  const mergedList = Array.from(map.values());
+  mergedList.sort((a, b) => {
+    const dtA = `${a.date || ''}T${a.time || '00:00'}`;
+    const dtB = `${b.date || ''}T${b.time || '00:00'}`;
+    return dtB.localeCompare(dtA);
+  });
+
+  return mergedList;
+}
+
 // --- REPORTS API ---
 
 // Get all reports
@@ -643,18 +700,17 @@ app.get('/api/reports', (_req, res) => {
   });
 });
 
-// Save / Batch save / Add report
+// Save / Batch save / Add report / Merge reports
 app.post('/api/reports', (req: Request, res: Response) => {
   try {
     const { reports, report } = req.body;
 
     if (Array.isArray(reports)) {
-      // Overwrite / sync full array
-      db.reports = reports;
+      db.reports = mergeReports(db.reports, reports);
       db.version = (db.version || 1) + 1;
       saveDatabaseToDisk();
       broadcastSyncEvent('REPORTS_SYNCED', { count: db.reports.length });
-      return res.json({ success: true, count: db.reports.length, version: db.version });
+      return res.json({ success: true, count: db.reports.length, reports: db.reports, version: db.version });
     }
 
     const targetReport: ModReportItem = report || req.body;
@@ -662,17 +718,11 @@ app.post('/api/reports', (req: Request, res: Response) => {
       return res.status(400).json({ error: 'Format data laporan tidak valid' });
     }
 
-    const idx = db.reports.findIndex(r => r.id === targetReport.id);
-    if (idx >= 0) {
-      db.reports[idx] = { ...db.reports[idx], ...targetReport };
-    } else {
-      db.reports.unshift(targetReport);
-    }
-
+    db.reports = mergeReports(db.reports, [targetReport]);
     db.version = (db.version || 1) + 1;
     saveDatabaseToDisk();
-    broadcastSyncEvent('REPORT_UPSERTED', { reportId: targetReport.id });
-    res.json({ success: true, report: targetReport, version: db.version });
+    broadcastSyncEvent('REPORT_UPSERTED', { reportId: targetReport.id, report: targetReport });
+    res.json({ success: true, report: targetReport, reports: db.reports, version: db.version });
   } catch (err: any) {
     console.error('Error saving report:', err);
     res.status(500).json({ error: err.message || 'Gagal menyimpan laporan' });
@@ -762,6 +812,8 @@ async function startServer() {
   if (!isProduction) {
     const { createServer: createViteServer } = await import('vite');
     const vite = await createViteServer({
+      root: __dirname,
+      configFile: path.resolve(__dirname, 'vite.config.ts'),
       server: {
         middlewareMode: true,
         hmr: false,

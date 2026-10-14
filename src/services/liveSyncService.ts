@@ -1,6 +1,6 @@
 import { UserProfile, ModReportItem, SystemSettings, SystemAuditLog } from '../types';
 import { normalizeSystemSettings } from './systemSettingsService';
-import { saveReports } from './storageService';
+import { saveReports, loadReports } from './storageService';
 import { saveAllUsers, deduplicateUsers, recordDeletedUserId } from './authService';
 
 const SYNC_VERSION_KEY = 'mod_report_client_sync_version_v1';
@@ -60,7 +60,8 @@ export function applyDatabaseSync(data: FullSyncPayload): void {
 
     if (Array.isArray(data.reports)) {
       saveReports(data.reports);
-      window.dispatchEvent(new CustomEvent('logar_reports_updated', { detail: data.reports }));
+      const mergedLocal = loadReports();
+      window.dispatchEvent(new CustomEvent('logar_reports_updated', { detail: mergedLocal }));
     }
 
     if (data.settings) {
