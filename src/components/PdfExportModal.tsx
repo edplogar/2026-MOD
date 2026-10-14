@@ -38,11 +38,9 @@ export const PdfExportModal: React.FC<PdfExportModalProps> = ({
   const [officerFilter, setOfficerFilter] = useState<string>('all');
   const [deptFilter, setDeptFilter] = useState<string>('all');
 
-  // Filter reports according to choices (enforcing data >= October 2026)
+  // Filter reports according to choices
   const filteredReports = useMemo(() => {
     return reports.filter(r => {
-      // Must be on or after October 2026
-      if (!isDateOnOrAfterOctober2026(r.date || r.timestamp)) return false;
 
       if (dateFilterType === 'oktober') {
         const clean = (r.date || r.timestamp).trim().split(' ')[0];

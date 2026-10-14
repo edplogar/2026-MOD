@@ -99,13 +99,6 @@ export const ReportListView: React.FC<ReportListViewProps> = ({
   // Filtered reports with real-time multi-field matching
   const filteredReports = useMemo(() => {
     const list = reports.filter(item => {
-      // Live user-created reports are ALWAYS preserved
-      if (!item.id?.startsWith('rep-')) {
-        const dateVal = item.date || item.timestamp || '';
-        if (dateVal.includes('2025')) return false;
-        if (!isDateOnOrAfterOctober2026(dateVal)) return false;
-      }
-
       // Real-time search keyword
       if (searchTerm.trim()) {
         const query = searchTerm.trim().toLowerCase();

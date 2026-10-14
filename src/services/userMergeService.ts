@@ -38,50 +38,26 @@ const ROLE_HIERARCHY: Record<UserRole, number> = {
 };
 
 /**
- * Checks whether an entered password matches any of the user's valid passwords.
- * Supports users with 2 or more passwords (e.g. Rusdi using both 'logar123' and 'rusdi123').
+ * Checks whether an entered password matches the user's single valid password.
+ * Strictly 1 user = 1 valid password.
  */
 export function isPasswordValidForUser(user: UserProfile, passwordInput: string): boolean {
   if (!user || !passwordInput) return false;
   const cleanInput = passwordInput.trim();
   if (!cleanInput) return false;
 
-  const validPasswords = new Set<string>();
-
-  // 1. Primary password
-  if (user.password && user.password.trim()) {
-    validPasswords.add(user.password.trim());
+  const userPass = (user.password || '').trim();
+  if (!userPass) {
+    const defaultPass = user.role === 'Super Admin' ? 'admin123' : 'logar123';
+    return cleanInput === defaultPass;
   }
-
-  // 2. Default fallback password by role
-  const defaultPass = user.role === 'Super Admin' ? 'admin123' : 'logar123';
-  validPasswords.add(defaultPass);
-
-  // 3. Alternate passwords stored in profile
-  if (Array.isArray(user.alternatePasswords)) {
-    user.alternatePasswords.forEach((p) => {
-      if (typeof p === 'string' && p.trim()) {
-        validPasswords.add(p.trim());
-      }
-    });
-  }
-
-  // 4. Special explicit merge support for Rusdi (who has 2 passwords used in the field)
-  const normName = normalizeName(user.name);
-  const normUser = normalizeUsername(user.username);
-  if (normName === 'rusdi' || normUser === 'rusdi') {
-    validPasswords.add('logar123');
-    validPasswords.add('rusdi123');
-    validPasswords.add('rusdi2026');
-  }
-
-  return validPasswords.has(cleanInput);
+  return cleanInput === userPass;
 }
 
 /**
  * Deduplicates and deep-merges an array of UserProfiles.
  * Handles duplicate users having the same name, username, email, or IDs.
- * Preserves multiple passwords into `alternatePasswords` so all passwords continue to work.
+ * Enforces single password integrity.
  */
 export function mergeAndDeduplicateUsers(
   users: UserProfile[],
@@ -129,32 +105,8 @@ export function mergeAndDeduplicateUsers(
       // --- MERGE WITH EXISTING USER ---
       const existing = canonicalMap.get(canonicalId)!;
 
-      // 1. Merge Passwords
-      const passSet = new Set<string>();
-      if (existing.password && existing.password.trim()) passSet.add(existing.password.trim());
-      if (raw.password && raw.password.trim()) passSet.add(raw.password.trim());
-      if (Array.isArray(existing.alternatePasswords)) {
-        existing.alternatePasswords.forEach(p => p && passSet.add(p.trim()));
-      }
-      if (Array.isArray(raw.alternatePasswords)) {
-        raw.alternatePasswords.forEach(p => p && passSet.add(p.trim()));
-      }
-
-      // For Rusdi specifically, guarantee both passwords
-      if (normName === 'rusdi' || normUser === 'rusdi') {
-        passSet.add('logar123');
-        passSet.add('rusdi123');
-        passSet.add('rusdi2026');
-      }
-
-      const passArray = Array.from(passSet).filter(Boolean);
-      // Prefer non-default password as primary, or existing password
-      let primaryPass = existing.password;
-      if (!primaryPass || primaryPass === 'logar123') {
-        const custom = passArray.find(p => p !== 'logar123' && p !== 'admin123');
-        if (custom) primaryPass = custom;
-      }
-      if (!primaryPass) primaryPass = raw.password || 'logar123';
+      // Single primary password
+      let primaryPass = (raw.password && raw.password.trim()) || (existing.password && existing.password.trim()) || 'logar123';
 
       // 2. Merge Roles (keep higher privilege)
       const existingScore = ROLE_HIERARCHY[existing.role] || 0;
@@ -178,7 +130,7 @@ export function mergeAndDeduplicateUsers(
         name: (existing.name && existing.name.length >= (raw.name || '').length) ? existing.name : raw.name,
         email: existing.email || raw.email,
         password: primaryPass,
-        alternatePasswords: passArray,
+        alternatePasswords: [primaryPass],
         mergedUserIds: Array.from(mergedIds),
         role: finalRole,
         department: (existing.department && existing.department !== 'General' && existing.department !== 'None') 
@@ -203,25 +155,14 @@ export function mergeAndDeduplicateUsers(
       if (normName) nameToCanonical.set(normName, canonicalId);
     } else {
       // --- REGISTER NEW CANONICAL USER ---
-      const passSet = new Set<string>();
-      if (raw.password && raw.password.trim()) passSet.add(raw.password.trim());
-      if (Array.isArray(raw.alternatePasswords)) {
-        raw.alternatePasswords.forEach(p => p && passSet.add(p.trim()));
-      }
-      if (normName === 'rusdi' || normUser === 'rusdi') {
-        passSet.add('logar123');
-        passSet.add('rusdi123');
-        passSet.add('rusdi2026');
-      }
-
-      const passArray = Array.from(passSet).filter(Boolean);
+      const primaryPass = (raw.password && raw.password.trim()) || (raw.role === 'Super Admin' ? 'admin123' : 'logar123');
       const cleanUser: UserProfile = {
         ...raw,
         id: cleanId,
         username: raw.username || normUser || cleanId,
         name: raw.name || 'Petugas LOGAR',
-        password: raw.password || (passArray.length > 0 ? passArray[0] : (raw.role === 'Super Admin' ? 'admin123' : 'logar123')),
-        alternatePasswords: passArray.length > 0 ? passArray : [raw.password || 'logar123'],
+        password: primaryPass,
+        alternatePasswords: [primaryPass],
         mergedUserIds: Array.from(new Set([cleanId, ...(raw.mergedUserIds || [])])),
         role: raw.role || 'MOD Officer',
         department: raw.department || 'General',

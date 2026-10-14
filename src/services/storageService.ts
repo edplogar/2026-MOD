@@ -2,7 +2,7 @@ import { ModReportItem, CloudSyncState, PictureItem } from '../types/index.ts';
 import { parseCSVToReports, RAW_MOD_CSV, isDateOnOrAfterOctober2026 } from '../data/initialData';
 import { getSystemSettings } from './systemSettingsService';
 import { syncAllPhotosToDrive, extractDriveFolderId, getDriveFolderUrl } from './driveSyncService';
-import { batchSyncReportsToFirestore, saveReportToFirestore, clearAllReportsFromFirestore } from './firebase';
+import { batchSyncReportsToFirestore, saveReportToFirestore, clearAllReportsFromFirestore, deleteReportFromFirestore } from './firebase';
 
 const STORAGE_KEY = 'mod_report_logar_data_v2';
 const SYNC_CONFIG_KEY = 'mod_report_logar_sync_config_v1';
@@ -155,7 +155,7 @@ export function loadReports(): ModReportItem[] {
     if (raw !== null) {
       const parsed = JSON.parse(raw);
       if (Array.isArray(parsed) && parsed.length > 0) {
-        const valid = parsed.filter(r => !r || r.id?.startsWith('rep-') || isDateOnOrAfterOctober2026(r.date || r.timestamp));
+        const valid = parsed.filter(Boolean);
         if (valid.length > 0) {
           memoryReportsCache = valid;
           return valid;
@@ -441,4 +441,80 @@ export function calculateStorageSavings(reports: ModReportItem[]): {
     savedBytes,
     percentageSaved,
   };
+}
+
+export function normalizeDateToISO(dateStr: string): string {
+  if (!dateStr) return '';
+  const clean = dateStr.trim().split(' ')[0];
+  if (clean.includes('-')) {
+    const parts = clean.split('-');
+    if (parts.length === 3) {
+      if (parts[0].length === 4) {
+        return `${parts[0]}-${parts[1].padStart(2, '0')}-${parts[2].padStart(2, '0')}`;
+      } else {
+        return `${parts[2]}-${parts[0].padStart(2, '0')}-${parts[1].padStart(2, '0')}`;
+      }
+    }
+  } else if (clean.includes('/')) {
+    const parts = clean.split('/');
+    if (parts.length === 3) {
+      const m = parts[0].padStart(2, '0');
+      const d = parts[1].padStart(2, '0');
+      const y = parts[2].length === 2 ? `20${parts[2]}` : parts[2];
+      return `${y}-${m}-${d}`;
+    }
+  }
+  const dateObj = new Date(dateStr);
+  if (!isNaN(dateObj.getTime())) {
+    return dateObj.toISOString().split('T')[0];
+  }
+  return '';
+}
+
+export async function deleteReportsByDateRange(startDate: string, endDate: string): Promise<{ deletedCount: number; remainingCount: number }> {
+  const all = loadReports();
+  const start = startDate ? startDate.trim() : '1970-01-01';
+  const end = endDate ? endDate.trim() : '2099-12-31';
+
+  const toKeep: ModReportItem[] = [];
+  const toDelete: ModReportItem[] = [];
+
+  all.forEach(r => {
+    const reportDateIso = normalizeDateToISO(r.date || r.timestamp || '');
+    if (reportDateIso && reportDateIso >= start && reportDateIso <= end) {
+      toDelete.push(r);
+    } else {
+      toKeep.push(r);
+    }
+  });
+
+  if (toDelete.length === 0) {
+    return { deletedCount: 0, remainingCount: all.length };
+  }
+
+  // Update in-memory cache and localStorage
+  memoryReportsCache = toKeep;
+  saveReports(toKeep);
+
+  // 1. Call server backend endpoint to remove deleted reports from database.json
+  const deleteIds = toDelete.map(r => r.id);
+  fetch('/api/reports/delete-by-date', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ idsToDelete: deleteIds, startDate: start, endDate: end }),
+  }).catch(err => {
+    console.warn('Server delete by date deferred:', err);
+  });
+
+  // 2. Delete matching reports from Firestore
+  for (const rep of toDelete) {
+    deleteReportFromFirestore(rep.id).catch(err => {
+      console.warn('Firestore delete report deferred:', err);
+    });
+  }
+
+  // 3. Dispatch event to update app UI state
+  window.dispatchEvent(new CustomEvent('logar_reports_updated', { detail: toKeep }));
+
+  return { deletedCount: toDelete.length, remainingCount: toKeep.length };
 }

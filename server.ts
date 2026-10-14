@@ -753,6 +753,32 @@ app.delete('/api/reports/:id', (req: Request, res: Response) => {
   }
 });
 
+// Delete reports by date range or list of IDs
+app.post('/api/reports/delete-by-date', (req: Request, res: Response) => {
+  try {
+    const { idsToDelete, startDate, endDate } = req.body;
+    const initialCount = db.reports.length;
+
+    if (Array.isArray(idsToDelete) && idsToDelete.length > 0) {
+      const deleteSet = new Set<string>(idsToDelete);
+      db.reports = db.reports.filter(r => !deleteSet.has(r.id));
+    } else if (startDate && endDate) {
+      db.reports = db.reports.filter(r => {
+        const reportDate = (r.date || r.timestamp || '').split('T')[0];
+        return reportDate < startDate || reportDate > endDate;
+      });
+    }
+
+    const deletedCount = initialCount - db.reports.length;
+    db.version = (db.version || 1) + 1;
+    saveDatabaseToDisk();
+    broadcastSyncEvent('REPORTS_SYNCED', { count: db.reports.length, reports: db.reports });
+    res.json({ success: true, deletedCount, remainingCount: db.reports.length, version: db.version });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message || 'Gagal menghapus laporan berdasarkan tanggal' });
+  }
+});
+
 // --- SYSTEM SETTINGS API ---
 
 // Get settings

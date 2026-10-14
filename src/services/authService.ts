@@ -113,7 +113,7 @@ export function addUser(user: Omit<UserProfile, 'id'>): UserProfile {
     id,
     username: cleanUsername,
     password: user.password || 'logar123',
-    alternatePasswords: user.password ? [user.password, 'logar123'] : ['logar123'],
+    alternatePasswords: [user.password || 'logar123'],
     mergedUserIds: [id],
     status: user.status || 'active',
     createdAt: user.createdAt || new Date().toISOString().split('T')[0],
@@ -148,21 +148,52 @@ export function addUser(user: Omit<UserProfile, 'id'>): UserProfile {
   return finalUser;
 }
 
+export function checkDuplicateUser(
+  name: string,
+  username: string,
+  currentUserId?: string
+): { isDuplicate: boolean; duplicateType?: 'name' | 'username' | 'both'; existingUser?: UserProfile } {
+  const users = getAllUsers();
+  const normName = normalizeName(name);
+  const normUser = normalizeUsername(username);
+
+  const existing = users.find(u => {
+    if (currentUserId && (u.id === currentUserId || (u.mergedUserIds && u.mergedUserIds.includes(currentUserId)))) {
+      return false; // Skip self when editing
+    }
+    const matchName = normName && normalizeName(u.name) === normName;
+    const matchUser = normUser && normalizeUsername(u.username) === normUser;
+    return matchName || matchUser;
+  });
+
+  if (existing) {
+    const matchName = normName && normalizeName(existing.name) === normName;
+    const matchUser = normUser && normalizeUsername(existing.username) === normUser;
+    let duplicateType: 'name' | 'username' | 'both' = 'both';
+    if (matchName && !matchUser) duplicateType = 'name';
+    if (matchUser && !matchName) duplicateType = 'username';
+
+    return {
+      isDuplicate: true,
+      duplicateType,
+      existingUser: existing,
+    };
+  }
+
+  return { isDuplicate: false };
+}
+
 export function updateUser(id: string, updates: Partial<UserProfile>): UserProfile | null {
   const users = getAllUsers();
   let updatedUser: UserProfile | null = null;
   const updated = users.map(u => {
     if (u.id === id || (u.mergedUserIds && u.mergedUserIds.includes(id))) {
-      const passSet = new Set<string>();
-      if (u.password) passSet.add(u.password);
-      if (updates.password) passSet.add(updates.password);
-      if (Array.isArray(u.alternatePasswords)) u.alternatePasswords.forEach(p => p && passSet.add(p));
-      if (Array.isArray(updates.alternatePasswords)) updates.alternatePasswords.forEach(p => p && passSet.add(p));
-
+      const newPass = (updates.password || u.password || 'logar123').trim();
       updatedUser = { 
         ...u, 
         ...updates,
-        alternatePasswords: Array.from(passSet).filter(Boolean)
+        password: newPass,
+        alternatePasswords: [newPass]
       };
       return updatedUser;
     }
@@ -207,13 +238,9 @@ export function updateUserPassword(userId: string, newPassword: string): boolean
   const target = users.find(u => u.id === userId || (u.mergedUserIds && u.mergedUserIds.includes(userId)));
   if (!target) return false;
 
-  const passSet = new Set<string>(target.alternatePasswords || []);
-  if (target.password) passSet.add(target.password);
-  passSet.add(cleanPass);
-
   const updated = updateUser(target.id, { 
     password: cleanPass,
-    alternatePasswords: Array.from(passSet)
+    alternatePasswords: [cleanPass]
   });
 
   // Also sync to server backend /api/users/:id/password

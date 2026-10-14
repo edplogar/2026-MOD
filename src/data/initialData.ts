@@ -219,35 +219,7 @@ export const RAW_MOD_CSV = `Timestamp,Name,Date,Location,Problem,Follow Up,Pictu
 10/3/2026 13:50:00,I Wayan kresna,10/3/2026 13:30:00,Restoran Flamboyan,Pembersihan pasca lunch selesai tepat waktu,,
 10/3/2026 15:40:00,Ahmad Mujaddid,10/3/2026 15:20:00,Parkir Karyawan & Loker,Pemeriksaan loker karyawan bersih dan tertib security siaga,,`;
 
-export function isDateOnOrAfterOctober2026(dateStr: string): boolean {
-  if (!dateStr) return true;
-  const clean = dateStr.trim().split(' ')[0];
-  if (clean.includes('2025')) return false;
-
-  const parts = clean.split(/[\/\-]/);
-  if (parts.length >= 3) {
-    if (parts[0].length === 4) {
-      // YYYY-MM-DD
-      const y = parseInt(parts[0], 10);
-      const m = parseInt(parts[1], 10);
-      return y > 2026 || (y === 2026 && m >= 10);
-    }
-    // D/M/YYYY or M/D/YYYY
-    const p0 = parseInt(parts[0], 10);
-    const p1 = parseInt(parts[1], 10);
-    const y = parseInt(parts[2], 10);
-    if (isNaN(y)) return true;
-    if (y > 2026) return true;
-    if (y < 2026) return false;
-    // Year 2026: check if either part indicates month >= 10 (October, November, December)
-    return p0 >= 10 || p1 >= 10;
-  }
-  const d = new Date(dateStr);
-  if (!isNaN(d.getTime())) {
-    const y = d.getFullYear();
-    const m = d.getMonth() + 1;
-    return y > 2026 || (y === 2026 && m >= 10);
-  }
+export function isDateOnOrAfterOctober2026(_dateStr: string): boolean {
   return true;
 }
 
@@ -286,12 +258,6 @@ export function parseCSVToReports(csv: string): ModReportItem[] {
     const problem = (cols[4] || 'Sikon aman').replace(/^"|"$/g, '').trim();
     const rawFollowUp = (cols[5] || '').replace(/^"|"$/g, '').trim();
     const rawPictures = (cols[6] || '').replace(/^"|"$/g, '').trim();
-
-    // Enforce data >= October 2026
-    const effectiveDate = dateStr || timestamp;
-    if (!isDateOnOrAfterOctober2026(effectiveDate)) {
-      continue;
-    }
 
     // Clean name
     const officerName = rawName.replace(/\s+/g, ' ').trim();

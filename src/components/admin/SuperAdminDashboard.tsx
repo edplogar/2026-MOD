@@ -66,7 +66,8 @@ import {
   getSuperAdminMasterKey,
   getSuperAdminPin,
   updateSuperAdminCredentials,
-  syncAndMergeAllDatabase
+  syncAndMergeAllDatabase,
+  checkDuplicateUser
 } from '../../services/authService';
 import { 
   getSystemSettings, 
@@ -79,7 +80,7 @@ import {
   factoryResetSystem
 } from '../../services/systemSettingsService';
 import { formatBytes, compressImage } from '../../services/imageCompressionService';
-import { calculateStorageSavings, saveReports } from '../../services/storageService';
+import { calculateStorageSavings, saveReports, deleteReportsByDateRange, normalizeDateToISO } from '../../services/storageService';
 import { 
   extractDriveFolderId, 
   getDriveFolderUrl, 
@@ -190,6 +191,54 @@ export const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({
   // New location state
   const [newLocName, setNewLocName] = useState('');
   const [newLocArea, setNewLocArea] = useState('Public Area');
+
+  // Date filter report deletion state (Requirement 2)
+  const [deleteFilterStartDate, setDeleteFilterStartDate] = useState('');
+  const [deleteFilterEndDate, setDeleteFilterEndDate] = useState('');
+  const [isDeletingByDate, setIsDeletingByDate] = useState(false);
+
+  const matchingReportsForDeletion = useMemo(() => {
+    if (!deleteFilterStartDate && !deleteFilterEndDate) return [];
+    const start = deleteFilterStartDate ? deleteFilterStartDate.trim() : '1970-01-01';
+    const end = deleteFilterEndDate ? deleteFilterEndDate.trim() : '2099-12-31';
+
+    return reports.filter(r => {
+      const iso = normalizeDateToISO(r.date || r.timestamp || '');
+      return iso && iso >= start && iso <= end;
+    });
+  }, [reports, deleteFilterStartDate, deleteFilterEndDate]);
+
+  const handleDeleteReportsByDate = async () => {
+    if (!deleteFilterStartDate || !deleteFilterEndDate) {
+      alert('Harap tentukan Tanggal Mulai dan Tanggal Selesai terlebih dahulu.');
+      return;
+    }
+
+    if (matchingReportsForDeletion.length === 0) {
+      alert(`Tidak ada laporan ditemukan pada rentang tanggal ${deleteFilterStartDate} s/d ${deleteFilterEndDate}.`);
+      return;
+    }
+
+    const confirmMsg = `APAKAH ANDA YAKIN INGIN MENGHAPUS PERMANEN ${matchingReportsForDeletion.length} LAPORAN?\n\nRentang Tanggal: ${deleteFilterStartDate} s/d ${deleteFilterEndDate}\n\nTindakan ini bersifat permanen dan akan menghapus data dari lokal, server backend, serta Firestore.`;
+    if (!window.confirm(confirmMsg)) return;
+
+    setIsDeletingByDate(true);
+    try {
+      const res = await deleteReportsByDateRange(deleteFilterStartDate, deleteFilterEndDate);
+      addAuditLog(
+        'REPORTS_DELETED_BY_DATE',
+        `Super Admin menghapus ${res.deletedCount} laporan MOD pada rentang tanggal ${deleteFilterStartDate} s/d ${deleteFilterEndDate}. Sisa laporan: ${res.remainingCount}`,
+        'DATA'
+      );
+      showToast(`✓ Berhasil menghapus ${res.deletedCount} laporan! Sisa: ${res.remainingCount} laporan.`);
+      loadData();
+      if (onRefreshData) onRefreshData();
+    } catch (err: any) {
+      alert(err.message || 'Gagal menghapus data laporan.');
+    } finally {
+      setIsDeletingByDate(false);
+    }
+  };
 
   // Notification toast
   const [toast, setToast] = useState<string | null>(null);
@@ -366,6 +415,17 @@ export const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({
     }
 
     const cleanUser = (formUsername.trim().toLowerCase().replace(/[^a-zA-Z0-9_]/g, '') || (formEmail || '').split('@')[0]);
+
+    // Duplicate check for Requirement 4
+    const dupCheck = checkDuplicateUser(formName.trim(), cleanUser, editingUser?.id);
+    if (dupCheck.isDuplicate && dupCheck.existingUser) {
+      const dupField = dupCheck.duplicateType === 'name' ? 'Nama' : dupCheck.duplicateType === 'username' ? 'Username' : 'Nama dan Username';
+      const warnMsg = `⚠️ Notifikasi Duplikasi User:\n${dupField} "${formName.trim()}" / "@${cleanUser}" sudah terdaftar pada akun (${dupCheck.existingUser.name} - @${dupCheck.existingUser.username}).\n\nApakah Anda tetap ingin melanjutkan penyimpanan data ini?`;
+      showToast(`⚠️ Perhatian: ${dupField} user sudah digunakan oleh ${dupCheck.existingUser.name}.`);
+      if (!window.confirm(warnMsg)) {
+        return;
+      }
+    }
 
     if (editingUser) {
       // Update
@@ -1682,6 +1742,72 @@ export const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({
                 </div>
               </div>
 
+              {/* Date Filter Report Deletion Section (Requirement 2) */}
+              <div className="bg-slate-800/80 border border-amber-500/40 rounded-2xl p-5 space-y-4 shadow-lg">
+                <div className="flex items-center justify-between flex-wrap gap-2">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center font-bold">
+                      <Trash2 className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-white text-sm">Filter Tanggal Penghapusan Laporan MOD</h3>
+                      <p className="text-xs text-slate-400">Pilih rentang tanggal untuk menghapus data laporan secara masal dari database</p>
+                    </div>
+                  </div>
+                  {matchingReportsForDeletion.length > 0 && (
+                    <span className="px-3 py-1 bg-amber-500/20 border border-amber-500/40 text-amber-300 font-bold text-xs rounded-xl">
+                      Ditemukan {matchingReportsForDeletion.length} Laporan
+                    </span>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-slate-300 font-semibold text-xs mb-1.5">Tanggal Mulai</label>
+                    <input
+                      type="date"
+                      value={deleteFilterStartDate}
+                      onChange={(e) => setDeleteFilterStartDate(e.target.value)}
+                      className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-xl text-white font-mono text-xs focus:outline-none focus:border-amber-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-slate-300 font-semibold text-xs mb-1.5">Tanggal Selesai</label>
+                    <input
+                      type="date"
+                      value={deleteFilterEndDate}
+                      onChange={(e) => setDeleteFilterEndDate(e.target.value)}
+                      className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-xl text-white font-mono text-xs focus:outline-none focus:border-amber-500"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-1 border-t border-slate-700/60">
+                  <p className="text-xs text-slate-400">
+                    {deleteFilterStartDate && deleteFilterEndDate ? (
+                      matchingReportsForDeletion.length > 0 ? (
+                        <span className="text-amber-300 font-medium">⚠️ Siap menghapus {matchingReportsForDeletion.length} data laporan dari tanggal {deleteFilterStartDate} s/d {deleteFilterEndDate}.</span>
+                      ) : (
+                        <span className="text-slate-400">Tidak ada laporan pada rentang tanggal {deleteFilterStartDate} s/d {deleteFilterEndDate}.</span>
+                      )
+                    ) : (
+                      <span>Pilih tanggal mulai dan tanggal selesai di atas.</span>
+                    )}
+                  </p>
+
+                  <button
+                    type="button"
+                    onClick={handleDeleteReportsByDate}
+                    disabled={isDeletingByDate || !deleteFilterStartDate || !deleteFilterEndDate || matchingReportsForDeletion.length === 0}
+                    className="w-full sm:w-auto px-5 py-2.5 bg-rose-600 hover:bg-rose-500 disabled:bg-slate-800 disabled:text-slate-500 disabled:cursor-not-allowed text-white font-bold text-xs rounded-xl transition flex items-center justify-center gap-2 shadow-md cursor-pointer"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    <span>{isDeletingByDate ? 'Menghapus...' : `Hapus Laporan (${matchingReportsForDeletion.length} Data)`}</span>
+                  </button>
+                </div>
+              </div>
+
               {/* Danger Zone */}
               <div className="border border-rose-900/60 bg-rose-950/20 rounded-2xl p-5 space-y-3">
                 <div className="flex items-center gap-2 text-rose-400 font-bold text-sm">
@@ -1721,6 +1847,25 @@ export const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({
             </div>
 
             <form onSubmit={handleSaveUser} className="p-6 space-y-3.5 text-xs">
+              {(() => {
+                const cleanUser = (formUsername.trim().toLowerCase().replace(/[^a-zA-Z0-9_]/g, '') || (formEmail || '').split('@')[0]);
+                const dup = checkDuplicateUser(formName, cleanUser, editingUser?.id);
+                if (dup.isDuplicate && dup.existingUser) {
+                  return (
+                    <div className="p-3 bg-amber-950/80 border border-amber-500/80 rounded-2xl text-amber-200 text-xs space-y-1">
+                      <div className="flex items-center gap-1.5 font-bold text-amber-300">
+                        <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0" />
+                        <span>Notifikasi Kesamaan Nama User / Username</span>
+                      </div>
+                      <p className="text-[11px] leading-relaxed text-amber-100">
+                        Petugas dengan {dup.duplicateType === 'name' ? 'nama' : dup.duplicateType === 'username' ? 'username' : 'nama & username'} yang sama sudah terdaftar atas nama <strong className="text-white font-bold">{dup.existingUser.name}</strong> (@{dup.existingUser.username}). Gunakan nama yang berbeda untuk menghindari data ganda/terduplikasi.
+                      </p>
+                    </div>
+                  );
+                }
+                return null;
+              })()}
+
               <div>
                 <label className="block text-slate-300 font-semibold mb-1">
                   Nama Lengkap Petugas <span className="text-rose-400">*</span>

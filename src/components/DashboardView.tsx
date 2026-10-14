@@ -114,31 +114,19 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 }) => {
   const perms = userPermissions || getUserPermissions(currentUser);
 
-  // Enforce removal of all records prior to October 2026
+  // Use all reports
   const postOctoberReports = useMemo(() => {
-    return reports.filter(r => {
-      const dateVal = r.date || r.timestamp || '';
-      if (dateVal.includes('2025')) return false;
-      return isDateOnOrAfterOctober2026(dateVal);
-    });
+    return reports || [];
   }, [reports]);
 
-  // Dynamically extract month list from valid reports (>= October 2026), guaranteeing active October 2026 is present
+  // Dynamically extract month list from all reports
   const availableMonths = useMemo(() => {
     const monthMap = new Map<string, { key: string; label: string; year: number; month: number }>();
-    
-    // Always guarantee current active month October 2026 is available
-    monthMap.set('10/2026', {
-      key: '10/2026',
-      label: 'Oktober 2026',
-      year: 2026,
-      month: 10,
-    });
 
-    // Extract any additional months from post-October reports
+    // Extract months from reports
     postOctoberReports.forEach(r => {
       const my = getReportMonthYear(r.date || r.timestamp);
-      if (my && (my.year > 2026 || (my.year === 2026 && my.month >= 10))) {
+      if (my) {
         if (!monthMap.has(my.key)) {
           monthMap.set(my.key, {
             key: my.key,
