@@ -115,7 +115,7 @@ export const ResolutionKpiSection: React.FC<ResolutionKpiSectionProps> = ({
               className="bg-transparent font-bold text-[#231E1B] focus:outline-none cursor-pointer"
             >
               <option value={4}>4 Jam (Shift Standar)</option>
-              <option value={6}>6 Jam (Rekomendasi GM)</option>
+              <option value={6}>6 Jam (Rekomendasi Management)</option>
               <option value={12}>12 Jam (Same-Day)</option>
               <option value={24}>24 Jam (Maksimal)</option>
             </select>
