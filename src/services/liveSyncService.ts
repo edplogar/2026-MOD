@@ -1,7 +1,7 @@
 import { UserProfile, ModReportItem, SystemSettings, SystemAuditLog } from '../types';
 import { normalizeSystemSettings } from './systemSettingsService';
 import { saveReports } from './storageService';
-import { saveAllUsers, deduplicateUsers } from './authService';
+import { saveAllUsers, deduplicateUsers, recordDeletedUserId } from './authService';
 
 const SYNC_VERSION_KEY = 'mod_report_client_sync_version_v1';
 const ALL_USERS_STORAGE_KEY = 'mod_report_all_users_v3';
@@ -30,6 +30,7 @@ export interface FullSyncPayload {
   reports: ModReportItem[];
   settings: SystemSettings;
   auditLogs: SystemAuditLog[];
+  deletedUserIds?: string[];
   masterCredentials?: {
     key: string;
     pin: string;
@@ -44,6 +45,12 @@ export function applyDatabaseSync(data: FullSyncPayload): void {
   try {
     currentClientVersion = data.version;
     localStorage.setItem(SYNC_VERSION_KEY, data.version.toString());
+
+    if (Array.isArray(data.deletedUserIds)) {
+      data.deletedUserIds.forEach(id => {
+        if (id) recordDeletedUserId(id);
+      });
+    }
 
     if (Array.isArray(data.users)) {
       const cleanUsers = deduplicateUsers(data.users);

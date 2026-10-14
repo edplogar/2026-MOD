@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { 
   X, 
   Upload, 
@@ -83,18 +83,22 @@ export const NewReportModal: React.FC<NewReportModalProps> = ({
     }
   };
 
-  // Form State
-  const now = new Date();
-  const currentDateStr = formatDateToMDY(now);
-  const currentDateISO = formatDateToISO(now);
-  const currentTimeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:00`;
+  // Auto-detect shift based on inspection hour
+  const getAutoShift = (d: Date): ShiftType => {
+    const hour = d.getHours();
+    if (hour >= 7 && hour < 15) return 'Pagi (07:00 - 15:00)';
+    if (hour >= 15 && hour < 23) return 'Sore (15:00 - 23:00)';
+    return 'Malam (23:00 - 07:00)';
+  };
 
-  // Petugas MOD strictly locked to current logged in user
-  const officerName = currentUser.name;
-  const [date, setDate] = useState(currentDateStr);
-  const [dateISO, setDateISO] = useState(currentDateISO);
-  const [time, setTime] = useState(currentTimeStr);
-  const [shift, setShift] = useState<ShiftType>('Sore (15:00 - 23:00)');
+  // Form State - Default realtime
+  const initialNow = new Date();
+  const [date, setDate] = useState(formatDateToMDY(initialNow));
+  const [dateISO, setDateISO] = useState(formatDateToISO(initialNow));
+  const [time, setTime] = useState(
+    `${String(initialNow.getHours()).padStart(2, '0')}:${String(initialNow.getMinutes()).padStart(2, '0')}:${String(initialNow.getSeconds()).padStart(2, '0')}`
+  );
+  const [shift, setShift] = useState<ShiftType>(getAutoShift(initialNow));
   const [location, setLocation] = useState(HOTEL_LOCATIONS[0]);
   const [customLocation, setCustomLocation] = useState('');
   const [problem, setProblem] = useState('');
@@ -102,37 +106,28 @@ export const NewReportModal: React.FC<NewReportModalProps> = ({
   const [status, setStatus] = useState<ReportStatus>('Aman');
   const [priority, setPriority] = useState<PriorityLevel>('Rendah');
 
-  // Shift auto-suggest based on inspection hour
-  const suggestShiftForTime = (timeStr: string) => {
-    const hour = parseInt(timeStr.split(':')[0], 10);
-    if (!isNaN(hour)) {
-      if (hour >= 7 && hour < 15) {
-        setShift('Pagi (07:00 - 15:00)');
-      } else if (hour >= 15 && hour < 23) {
-        setShift('Sore (15:00 - 23:00)');
-      } else {
-        setShift('Malam (23:00 - 07:00)');
-      }
-    }
-  };
+  // Petugas MOD strictly locked to current logged in user
+  const officerName = currentUser.name;
 
-  // Date handlers
-  const handleDateCalendarChange = (valISO: string) => {
-    setDateISO(valISO);
-    if (valISO) {
-      const [y, m, day] = valISO.split('-').map(Number);
-      const d = new Date(y, (m || 1) - 1, day || 1);
-      setDate(formatDateToMDY(d));
-    }
-  };
+  // Real-time live date and time ticker: otomatis mencatat waktu saat ini & user tidak bisa mengubahnya
+  useEffect(() => {
+    if (!isOpen) return;
 
-  // Time handlers
-  const handleTimePickerChange = (val: string) => {
-    if (!val) return;
-    const finalTime = val.length === 5 ? `${val}:00` : val;
-    setTime(finalTime);
-    suggestShiftForTime(finalTime);
-  };
+    const updateToRealtime = () => {
+      const current = new Date();
+      setDate(formatDateToMDY(current));
+      setDateISO(formatDateToISO(current));
+      const hours = String(current.getHours()).padStart(2, '0');
+      const minutes = String(current.getMinutes()).padStart(2, '0');
+      const seconds = String(current.getSeconds()).padStart(2, '0');
+      setTime(`${hours}:${minutes}:${seconds}`);
+      setShift(getAutoShift(current));
+    };
+
+    updateToRealtime();
+    const intervalTimer = setInterval(updateToRealtime, 1000);
+    return () => clearInterval(intervalTimer);
+  }, [isOpen]);
   
   // Pictures and compression state
   const [isCompressing, setIsCompressing] = useState(false);
@@ -360,9 +355,9 @@ export const NewReportModal: React.FC<NewReportModalProps> = ({
             </div>
           </div>
 
-          {/* Row 2: Tanggal & Waktu Inspeksi Lapangan */}
+          {/* Row 2: Tanggal & Waktu Inspeksi Lapangan (Default Realtime & Terkunci) */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {/* Tanggal Inspeksi (Kalender Date Picker) */}
+            {/* Tanggal Inspeksi (Real-Time Terkunci) */}
             <div className="p-3.5 rounded-2xl bg-[#FAFBF5] border border-[#E2E7B8] space-y-2">
               <div className="flex items-center justify-between gap-1">
                 <label className="text-xs font-bold text-[#231E1B] flex items-center gap-1.5">
@@ -370,24 +365,27 @@ export const NewReportModal: React.FC<NewReportModalProps> = ({
                   <span>Tanggal Inspeksi</span>
                   <span className="text-[#C25941]">*</span>
                 </label>
-                <span className="text-[10px] text-[#5B6713] font-semibold bg-[#EAEEBB] px-2 py-0.5 rounded-full border border-[#C6CC81] truncate max-w-[150px]">
-                  {formatIndonesianDateLong(date)}
+                <span className="text-[10px] text-[#5B6713] font-semibold bg-[#EAEEBB] px-2 py-0.5 rounded-full border border-[#C6CC81] flex items-center gap-1 shrink-0">
+                  <Lock className="w-3 h-3 text-[#7B8C1B]" />
+                  Realtime (Terkunci)
                 </span>
               </div>
 
               <div>
-                <input
-                  type="date"
-                  value={dateISO}
-                  onChange={(e) => handleDateCalendarChange(e.target.value)}
-                  required
-                  className="w-full px-3 py-2.5 text-xs rounded-xl border border-[#D9DF98] bg-white focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#95A823]/20 focus:border-[#95A823] font-mono font-semibold text-[#231E1B] cursor-pointer"
-                  title="Buka kalender untuk memilih tanggal inspeksi"
-                />
+                <div className="w-full px-3 py-2.5 text-xs rounded-xl border border-[#D9DF98] bg-[#F4F6EA]/70 font-mono font-bold text-[#231E1B] flex items-center justify-between select-none cursor-not-allowed shadow-2xs">
+                  <span className="font-semibold text-xs text-[#231E1B] truncate mr-2">{formatIndonesianDateLong(date)}</span>
+                  <span className="text-[10px] text-[#5B6713] bg-white px-2 py-0.5 rounded border border-[#C6CC81] font-mono shrink-0">
+                    {dateISO}
+                  </span>
+                </div>
+                <p className="text-[10px] text-[#70635A] mt-1.5 flex items-center gap-1">
+                  <ShieldCheck className="w-3.5 h-3.5 text-[#95A823] shrink-0" />
+                  <span>Tanggal inspeksi terkunci otomatis sesuai kalender resmi hotel.</span>
+                </p>
               </div>
             </div>
 
-            {/* Jam / Waktu Patroli (Time Picker) */}
+            {/* Jam / Waktu Patroli (Real-Time Terkunci) */}
             <div className="p-3.5 rounded-2xl bg-[#FAFBF5] border border-[#E2E7B8] space-y-2">
               <div className="flex items-center justify-between gap-1">
                 <label className="text-xs font-bold text-[#231E1B] flex items-center gap-1.5">
@@ -395,21 +393,26 @@ export const NewReportModal: React.FC<NewReportModalProps> = ({
                   <span>Jam Patroli</span>
                   <span className="text-[#C25941]">*</span>
                 </label>
-                <span className="text-[10px] text-[#7B8C1B] font-mono font-bold bg-[#EAEEBB] px-2 py-0.5 rounded-full border border-[#C6CC81]">
-                  {time} WITA / WIB
+                <span className="text-[10px] text-[#5B6713] font-semibold bg-[#EAEEBB] px-2 py-0.5 rounded-full border border-[#C6CC81] flex items-center gap-1 shrink-0">
+                  <Lock className="w-3 h-3 text-[#7B8C1B]" />
+                  Realtime (Terkunci)
                 </span>
               </div>
 
               <div>
-                <input
-                  type="time"
-                  step="1"
-                  value={time}
-                  onChange={(e) => handleTimePickerChange(e.target.value)}
-                  required
-                  className="w-full px-3 py-2.5 text-xs rounded-xl border border-[#D9DF98] bg-white focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#95A823]/20 focus:border-[#95A823] font-mono font-bold text-[#231E1B] cursor-pointer"
-                  title="Pilih jam dan menit spesifik"
-                />
+                <div className="w-full px-3 py-2.5 text-xs rounded-xl border border-[#D9DF98] bg-[#F4F6EA]/70 font-mono font-bold text-[#231E1B] flex items-center justify-between select-none cursor-not-allowed shadow-2xs">
+                  <span className="text-sm font-black text-[#231E1B] tracking-wider font-mono flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-[#95A823] animate-pulse"></span>
+                    {time}
+                  </span>
+                  <span className="text-[10px] text-[#7B8C1B] font-mono font-bold bg-[#EAEEBB] px-2 py-0.5 rounded-full border border-[#C6CC81] shrink-0">
+                    Live Realtime
+                  </span>
+                </div>
+                <p className="text-[10px] text-[#70635A] mt-1.5 flex items-center gap-1">
+                  <ShieldCheck className="w-3.5 h-3.5 text-[#95A823] shrink-0" />
+                  <span>Jam patroli terekam langsung detik ini saat temuan ditemukan.</span>
+                </p>
               </div>
             </div>
           </div>

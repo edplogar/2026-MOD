@@ -9,7 +9,7 @@ import {
 } from 'firebase/firestore';
 import { db } from '../firebase';
 import { UserProfile, ModReportItem, SystemSettings, SystemAuditLog } from '../types';
-import { INITIAL_HOTEL_USERS } from './authService';
+import { INITIAL_HOTEL_USERS, deduplicateUsers, saveAllUsers } from './authService';
 import { loadReports } from './storageService';
 import { getSystemSettings, getAuditLogs } from './systemSettingsService';
 
@@ -48,8 +48,9 @@ export function startFirebaseLiveSync(): () => void {
 
       if (remoteUsers.length > 0) {
         try {
-          localStorage.setItem('mod_report_all_users_v2', JSON.stringify(remoteUsers));
-          window.dispatchEvent(new CustomEvent('logar_users_updated', { detail: remoteUsers }));
+          const cleanUsers = deduplicateUsers(remoteUsers);
+          saveAllUsers(cleanUsers);
+          window.dispatchEvent(new CustomEvent('logar_users_updated', { detail: cleanUsers }));
         } catch (e) {
           console.error('[FirebaseSync] Error caching remote users:', e);
         }

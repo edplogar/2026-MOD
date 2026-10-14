@@ -1,218 +1,14 @@
 import { UserProfile, UserRole, Department } from '../types/index.ts';
-import { saveUserToFirestore, deleteUserFromFirestore } from './firebase';
+import { saveUserToFirestore, deleteUserFromFirestore, batchCleanAndSyncFirestoreUsers } from './firebase';
+import { INITIAL_HOTEL_USERS } from '../data/defaultConstants';
+import { 
+  mergeAndDeduplicateUsers, 
+  isPasswordValidForUser, 
+  normalizeName, 
+  normalizeUsername 
+} from './userMergeService';
 
-export const INITIAL_HOTEL_USERS: UserProfile[] = [
-  {
-    id: 'user-superadmin',
-    username: 'superadmin',
-    password: 'admin123',
-    name: 'Super Administrator LOGAR',
-    email: 'superadmin@lombokgardenhotel.com',
-    role: 'Super Admin',
-    department: 'General',
-    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
-    phone: '+62 811-390-999',
-    status: 'active',
-    createdAt: '2025-12-01',
-    lastActive: 'Baru saja',
-  },
-  {
-    id: 'user-gm',
-    username: 'gm',
-    password: 'logar123',
-    name: 'General Manager Logar',
-    email: 'gm@lombokgardenhotel.com',
-    role: 'General Manager',
-    department: 'General',
-    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
-    phone: '+62 811-390-001',
-    status: 'active',
-    createdAt: '2025-12-01',
-    lastActive: 'Hari ini',
-  },
-  {
-    id: 'user-dm-asrul',
-    username: 'asrul',
-    password: 'logar123',
-    name: 'Asrul Sani',
-    email: 'asrul.sani@lombokgardenhotel.com',
-    role: 'Duty Manager',
-    department: 'Front Office',
-    avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80',
-    phone: '+62 812-3456-7801',
-    status: 'active',
-    createdAt: '2025-12-01',
-    lastActive: 'Aktif bertugas',
-  },
-  {
-    id: 'user-mod-wayan',
-    username: 'wayan',
-    password: 'logar123',
-    name: 'Iwayan Suardana',
-    email: 'wayan.suardana@lombokgardenhotel.com',
-    role: 'MOD Officer',
-    department: 'Security',
-    avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&auto=format&fit=crop&q=80',
-    phone: '+62 813-2345-6702',
-    status: 'active',
-    createdAt: '2025-12-05',
-    lastActive: 'Kemarin',
-  },
-  {
-    id: 'user-mod-komang',
-    username: 'komang',
-    password: 'logar123',
-    name: 'I Komang Artana',
-    email: 'komang.artana@lombokgardenhotel.com',
-    role: 'MOD Officer',
-    department: 'Engineering',
-    avatar: 'https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?w=150&auto=format&fit=crop&q=80',
-    phone: '+62 818-7654-3210',
-    status: 'active',
-    createdAt: '2025-12-09',
-    lastActive: 'Hari ini',
-  },
-  {
-    id: 'user-mod-ayu',
-    username: 'ayu',
-    password: 'logar123',
-    name: 'Ayu Sugiyarti',
-    email: 'ayu.sugiyarti@lombokgardenhotel.com',
-    role: 'MOD Officer',
-    department: 'Housekeeping',
-    avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80',
-    phone: '+62 878-1234-5678',
-    status: 'active',
-    createdAt: '2026-03-07',
-    lastActive: 'Kemarin',
-  },
-  {
-    id: 'user-mod-sardika',
-    username: 'made',
-    password: 'logar123',
-    name: 'Made Sardika',
-    email: 'made.sardika@lombokgardenhotel.com',
-    role: 'Duty Manager',
-    department: 'Front Office',
-    avatar: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=150&auto=format&fit=crop&q=80',
-    phone: '+62 812-9876-5432',
-    status: 'active',
-    createdAt: '2025-12-29',
-    lastActive: '3 hari lalu',
-  },
-  {
-    id: 'user-mod-naning',
-    username: 'naning',
-    password: 'logar123',
-    name: 'Naning',
-    email: 'naning@lombokgardenhotel.com',
-    role: 'MOD Officer',
-    department: 'FB Service',
-    avatar: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=150&auto=format&fit=crop&q=80',
-    phone: '+62 859-1122-3344',
-    status: 'active',
-    createdAt: '2025-12-12',
-    lastActive: '4 hari lalu',
-  },
-  {
-    id: 'user-mod-defi',
-    username: 'defi',
-    password: 'logar123',
-    name: 'Defi',
-    email: 'defi@lombokgardenhotel.com',
-    role: 'MOD Officer',
-    department: 'Fb Product',
-    avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&auto=format&fit=crop&q=80',
-    phone: '+62 877-2233-4455',
-    status: 'active',
-    createdAt: '2025-12-11',
-    lastActive: '5 hari lalu',
-  },
-  {
-    id: 'user-mod-mujahidin',
-    username: 'mujahidin',
-    password: 'logar123',
-    name: 'Mujahidin',
-    email: 'mujahidin@lombokgardenhotel.com',
-    role: 'MOD Officer',
-    department: 'Engineering',
-    avatar: 'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=150&auto=format&fit=crop&q=80',
-    phone: '+62 813-5566-7788',
-    status: 'active',
-    createdAt: '2026-04-05',
-    lastActive: 'Hari ini',
-  },
-  {
-    id: 'user-mod-kresna',
-    username: 'kresna',
-    password: 'logar123',
-    name: 'I Wayan kresna',
-    email: 'kresna@lombokgardenhotel.com',
-    role: 'MOD Officer',
-    department: 'Housekeeping',
-    avatar: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=150&auto=format&fit=crop&q=80',
-    phone: '+62 812-3901-2233',
-    status: 'active',
-    createdAt: '2025-12-01',
-    lastActive: 'Aktif bertugas',
-  },
-  {
-    id: 'user-mod-sukmajaya',
-    username: 'sukmajaya',
-    password: 'logar123',
-    name: 'I GD Sukmajaya',
-    email: 'sukmajaya@lombokgardenhotel.com',
-    role: 'MOD Officer',
-    department: 'Engineering',
-    avatar: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=150&auto=format&fit=crop&q=80',
-    phone: '+62 813-3902-4455',
-    status: 'active',
-    createdAt: '2025-12-01',
-    lastActive: 'Aktif bertugas',
-  },
-  {
-    id: 'user-mod-rusdi',
-    username: 'rusdi',
-    password: 'logar123',
-    name: 'Rusdi',
-    email: 'rusdi@lombokgardenhotel.com',
-    role: 'MOD Officer',
-    department: 'Security',
-    avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80',
-    phone: '+62 819-3903-5566',
-    status: 'active',
-    createdAt: '2025-12-01',
-    lastActive: 'Hari ini',
-  },
-  {
-    id: 'user-mod-kazwini',
-    username: 'kazwini',
-    password: 'logar123',
-    name: 'Kazwini',
-    email: 'kazwini@lombokgardenhotel.com',
-    role: 'MOD Officer',
-    department: 'FB Service',
-    avatar: 'https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?w=150&auto=format&fit=crop&q=80',
-    phone: '+62 878-3904-6677',
-    status: 'active',
-    createdAt: '2025-12-01',
-    lastActive: 'Hari ini',
-  },
-  {
-    id: 'user-mod-mujaddid',
-    username: 'mujaddid',
-    password: 'logar123',
-    name: 'Ahmad Mujaddid',
-    email: 'mujaddid@lombokgardenhotel.com',
-    role: 'MOD Officer',
-    department: 'Engineering',
-    avatar: 'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=150&auto=format&fit=crop&q=80',
-    phone: '+62 812-3905-7788',
-    status: 'active',
-    createdAt: '2025-12-01',
-    lastActive: 'Hari ini',
-  }
-];
+export { INITIAL_HOTEL_USERS };
 
 const AUTH_STORAGE_KEY = 'mod_report_auth_user_v1';
 const ALL_USERS_STORAGE_KEY = 'mod_report_all_users_v3';
@@ -250,72 +46,11 @@ export const DEFAULT_SUPER_ADMIN_KEY = 'LOGAR-ADMIN-2026';
 export const DEFAULT_SUPER_ADMIN_PIN = '778899';
 
 /**
- * Deduplicates user profiles strictly by ID, username, and email.
- * Prevents duplicate React keys and identical records in storage.
+ * Deduplicates user profiles strictly by ID, username, name, and email.
+ * Merges duplicate user entries (such as Rusdi who has 2 passwords used).
  */
 export function deduplicateUsers(users: UserProfile[]): UserProfile[] {
-  if (!Array.isArray(users)) return [];
-
-  const deletedIds = getDeletedUserIds();
-  const mapById = new Map<string, UserProfile>();
-  const seenUsernames = new Map<string, string>(); // username -> canonical id
-  const seenEmails = new Map<string, string>(); // email -> canonical id
-
-  for (const rawUser of users) {
-    if (!rawUser || !rawUser.id) continue;
-    const cleanId = String(rawUser.id).trim();
-    if (deletedIds.has(cleanId)) continue;
-
-    const cleanUsername = (rawUser.username || rawUser.email?.split('@')[0] || cleanId).trim().toLowerCase();
-    const cleanEmail = (rawUser.email || '').trim().toLowerCase();
-
-    // 1. If ID already seen, merge fields without duplicating entry
-    if (mapById.has(cleanId)) {
-      const existing = mapById.get(cleanId)!;
-      mapById.set(cleanId, {
-        ...existing,
-        ...rawUser,
-        username: existing.username || rawUser.username,
-        password: rawUser.password || existing.password,
-      });
-      continue;
-    }
-
-    // 2. If username matches an existing user under another ID, merge into that existing user
-    if (cleanUsername && seenUsernames.has(cleanUsername)) {
-      const canonicalId = seenUsernames.get(cleanUsername)!;
-      if (mapById.has(canonicalId)) {
-        const existing = mapById.get(canonicalId)!;
-        mapById.set(canonicalId, {
-          ...existing,
-          ...rawUser,
-          id: canonicalId,
-        });
-        continue;
-      }
-    }
-
-    // 3. If email matches an existing user, merge into that user
-    if (cleanEmail && seenEmails.has(cleanEmail)) {
-      const canonicalId = seenEmails.get(cleanEmail)!;
-      if (mapById.has(canonicalId)) {
-        const existing = mapById.get(canonicalId)!;
-        mapById.set(canonicalId, {
-          ...existing,
-          ...rawUser,
-          id: canonicalId,
-        });
-        continue;
-      }
-    }
-
-    // 4. Register new unique user
-    mapById.set(cleanId, { ...rawUser });
-    if (cleanUsername) seenUsernames.set(cleanUsername, cleanId);
-    if (cleanEmail) seenEmails.set(cleanEmail, cleanId);
-  }
-
-  return Array.from(mapById.values());
+  return mergeAndDeduplicateUsers(users, getDeletedUserIds());
 }
 
 export function getAllUsers(): UserProfile[] {
@@ -378,42 +113,82 @@ export function addUser(user: Omit<UserProfile, 'id'>): UserProfile {
     id,
     username: cleanUsername,
     password: user.password || 'logar123',
+    alternatePasswords: user.password ? [user.password, 'logar123'] : ['logar123'],
+    mergedUserIds: [id],
     status: user.status || 'active',
     createdAt: user.createdAt || new Date().toISOString().split('T')[0],
     lastActive: 'Belum pernah login',
   };
 
-  const updated = [newUser, ...users];
-  saveAllUsers(updated);
+  // Merge with existing users if same name/username/email
+  const mergedList = mergeAndDeduplicateUsers([newUser, ...users], getDeletedUserIds());
+  saveAllUsers(mergedList);
+
+  // Sync to Express backend server /api/users
+  fetch('/api/users', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ user: newUser }),
+  }).catch(err => {
+    console.warn('Real-time sync to server API deferred:', err);
+  });
 
   // Real-time Firestore sync across all devices
   saveUserToFirestore(newUser).catch(err => {
     console.warn('Real-time sync to Firestore deferred:', err);
   });
 
-  return newUser;
+  const finalUser = mergedList.find(u => 
+    u.id === id || 
+    (u.mergedUserIds && u.mergedUserIds.includes(id)) ||
+    normalizeUsername(u.username) === cleanUsername || 
+    normalizeName(u.name) === normalizeName(user.name)
+  ) || newUser;
+
+  return finalUser;
 }
 
 export function updateUser(id: string, updates: Partial<UserProfile>): UserProfile | null {
   const users = getAllUsers();
   let updatedUser: UserProfile | null = null;
   const updated = users.map(u => {
-    if (u.id === id) {
-      updatedUser = { ...u, ...updates };
+    if (u.id === id || (u.mergedUserIds && u.mergedUserIds.includes(id))) {
+      const passSet = new Set<string>();
+      if (u.password) passSet.add(u.password);
+      if (updates.password) passSet.add(updates.password);
+      if (Array.isArray(u.alternatePasswords)) u.alternatePasswords.forEach(p => p && passSet.add(p));
+      if (Array.isArray(updates.alternatePasswords)) updates.alternatePasswords.forEach(p => p && passSet.add(p));
+
+      updatedUser = { 
+        ...u, 
+        ...updates,
+        alternatePasswords: Array.from(passSet).filter(Boolean)
+      };
       return updatedUser;
     }
     return u;
   });
 
   if (updatedUser) {
-    saveAllUsers(updated);
+    const cleanMerged = mergeAndDeduplicateUsers(updated, getDeletedUserIds());
+    saveAllUsers(cleanMerged);
+
+    // Sync to Express backend server /api/users/:id
+    fetch(`/api/users/${encodeURIComponent(id)}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updates),
+    }).catch(err => {
+      console.warn('Real-time update to server API deferred:', err);
+    });
+
     // Also update stored active user if it matches
     const active = getStoredUser();
-    if (active.id === id) {
+    if (active.id === id || (active.mergedUserIds && active.mergedUserIds.includes(id))) {
       saveStoredUser(updatedUser);
     }
     const session = getSessionUser();
-    if (session && session.id === id) {
+    if (session && (session.id === id || (session.mergedUserIds && session.mergedUserIds.includes(id)))) {
       setSessionUser(updatedUser);
     }
 
@@ -427,7 +202,29 @@ export function updateUser(id: string, updates: Partial<UserProfile>): UserProfi
 
 export function updateUserPassword(userId: string, newPassword: string): boolean {
   if (!newPassword || newPassword.trim().length === 0) return false;
-  const updated = updateUser(userId, { password: newPassword.trim() });
+  const cleanPass = newPassword.trim();
+  const users = getAllUsers();
+  const target = users.find(u => u.id === userId || (u.mergedUserIds && u.mergedUserIds.includes(userId)));
+  if (!target) return false;
+
+  const passSet = new Set<string>(target.alternatePasswords || []);
+  if (target.password) passSet.add(target.password);
+  passSet.add(cleanPass);
+
+  const updated = updateUser(target.id, { 
+    password: cleanPass,
+    alternatePasswords: Array.from(passSet)
+  });
+
+  // Also sync to server backend /api/users/:id/password
+  fetch(`/api/users/${encodeURIComponent(target.id)}/password`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ password: cleanPass }),
+  }).catch(err => {
+    console.warn('Real-time password sync to server deferred:', err);
+  });
+
   return !!updated;
 }
 
@@ -566,7 +363,8 @@ export function authenticateUser(
   const matchedUser = users.find(u => {
     const matchUsername = u.username && u.username.toLowerCase() === cleanInput;
     const matchEmail = u.email && u.email.toLowerCase() === cleanInput;
-    return matchUsername || matchEmail;
+    const matchName = normalizeName(u.name) === normalizeName(cleanInput);
+    return matchUsername || matchEmail || matchName;
   });
 
   if (!matchedUser) {
@@ -583,9 +381,8 @@ export function authenticateUser(
     };
   }
 
-  const expectedPassword = matchedUser.password || (matchedUser.role === 'Super Admin' ? 'admin123' : 'logar123');
-
-  if (cleanPass !== expectedPassword) {
+  // Multi-password authentication: handles users with 2 or more passwords (such as Rusdi)
+  if (!isPasswordValidForUser(matchedUser, cleanPass)) {
     return {
       success: false,
       message: 'Password yang Anda masukkan salah. Coba lagi atau hubungi Super Admin.',
@@ -605,6 +402,71 @@ export function authenticateUser(
     success: true,
     user: updated,
   };
+}
+
+/**
+ * Deeply reconciles and synchronizes user database across Client localStorage,
+ * Backend Express Server (/api/users/sync-merge), and Firebase Firestore.
+ * Merges duplicate entries and guarantees multi-password support.
+ */
+export async function syncAndMergeAllDatabase(): Promise<{
+  success: boolean;
+  userCount: number;
+  mergedCount: number;
+  message: string;
+}> {
+  try {
+    const localUsers = getAllUsers();
+    const deletedIds = getDeletedUserIds();
+
+    // 1. Call Backend Server Deep-Merge Endpoint
+    const res = await fetch('/api/users/sync-merge', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ 
+        users: localUsers,
+        deletedUserIds: Array.from(deletedIds)
+      }),
+    });
+
+    let mergedUsers: UserProfile[] = localUsers;
+    if (res.ok) {
+      const data = await res.json();
+      if (Array.isArray(data.users)) {
+        mergedUsers = data.users;
+      }
+    }
+
+    const finalClean = mergeAndDeduplicateUsers(mergedUsers, deletedIds);
+    saveAllUsers(finalClean);
+
+    // 2. Synchronize clean users to Firestore
+    batchCleanAndSyncFirestoreUsers(finalClean).catch(err => {
+      console.warn('Real-time sync to Firestore users deferred:', err);
+    });
+
+    // 3. Real-time broadcast to UI
+    try {
+      window.dispatchEvent(new CustomEvent('logar_users_updated', { detail: finalClean }));
+    } catch {
+      // ignore
+    }
+
+    return {
+      success: true,
+      userCount: finalClean.length,
+      mergedCount: Math.max(0, localUsers.length - finalClean.length),
+      message: `Database berhasil disinkronisasi & dimerge secara menyeluruh (${finalClean.length} akun terverifikasi konsisten).`,
+    };
+  } catch (err: any) {
+    console.error('Deep sync and merge error:', err);
+    return {
+      success: false,
+      userCount: getAllUsers().length,
+      mergedCount: 0,
+      message: err.message || 'Gagal menjalankan sinkronisasi menyeluruh.',
+    };
+  }
 }
 
 // Super Admin Secure Credentials & Session Management

@@ -374,8 +374,12 @@ export default function App() {
     showToast('Catatan inspeksi dihapus.');
   };
 
-  // Clear all reports across Firestore & Local Storage
+  // Clear all reports across Firestore & Local Storage (Strictly Super Admin only)
   const handleClearAllReports = async () => {
+    if (!isSuperAdmin && currentUser?.role !== 'Super Admin') {
+      showToast('Akses ditolak: Hanya Super Administrator yang berhak mengosongkan seluruh laporan.');
+      return;
+    }
     setReports([]);
     saveReports([]);
     setSyncState(getSyncState([]));
@@ -612,7 +616,7 @@ export default function App() {
                 }
                 setIsPdfExportOpen(true);
               }}
-              onClearAllReports={handleClearAllReports}
+              onClearAllReports={isSuperAdmin || currentUser?.role === 'Super Admin' ? handleClearAllReports : undefined}
               initialFilterStatus={reportFilterStatus}
             />
           )}

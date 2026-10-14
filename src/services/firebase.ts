@@ -416,6 +416,40 @@ export async function deleteUserFromFirestore(userId: string): Promise<void> {
 }
 
 /**
+ * Batch clean and synchronize deduplicated users to Firestore.
+ * Removes obsolete duplicate documents and guarantees single consistent records.
+ */
+export async function batchCleanAndSyncFirestoreUsers(cleanUsers: UserProfile[]): Promise<void> {
+  if (firestoreQuotaExceededState) return;
+  const path = 'users';
+  try {
+    const snap = await getDocs(collection(db, path));
+    const batch = writeBatch(db);
+    const validIds = new Set(cleanUsers.map((u) => u.id));
+    
+    // Delete documents that are not in the canonical list
+    snap.docs.forEach((docSnap) => {
+      if (!validIds.has(docSnap.id)) {
+        batch.delete(docSnap.ref);
+      }
+    });
+
+    // Write all canonical merged users
+    cleanUsers.forEach((u) => {
+      batch.set(doc(db, 'users', u.id), sanitizeForFirestore(u), { merge: true });
+    });
+
+    await batch.commit();
+  } catch (error) {
+    if (isQuotaExceededError(error)) {
+      setFirestoreQuotaExceeded(true);
+      return;
+    }
+    console.warn('[Firestore] Batch clean and sync users deferred:', error);
+  }
+}
+
+/**
  * Real-time listener for Super Admin System Settings (doc: settings/system)
  */
 export function subscribeToFirestoreSettings(

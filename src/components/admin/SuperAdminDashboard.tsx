@@ -65,7 +65,8 @@ import {
   clearSuperAdminSession,
   getSuperAdminMasterKey,
   getSuperAdminPin,
-  updateSuperAdminCredentials
+  updateSuperAdminCredentials,
+  syncAndMergeAllDatabase
 } from '../../services/authService';
 import { 
   getSystemSettings, 
@@ -162,6 +163,27 @@ export const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({
       });
     } finally {
       setIsTestingDrive(false);
+    }
+  };
+
+  const [isSyncingDatabase, setIsSyncingDatabase] = useState(false);
+
+  const handleSyncAndMergeDatabase = async () => {
+    setIsSyncingDatabase(true);
+    try {
+      const res = await syncAndMergeAllDatabase();
+      addAuditLog(
+        'DATABASE_SYNC_MERGED',
+        `Super Admin menjalankan deep-merge dan sinkronisasi database pengguna. Hasil: ${res.userCount} akun konsisten.`,
+        'DATA'
+      );
+      showToast(res.message);
+      loadData();
+      if (onRefreshData) onRefreshData();
+    } catch (err: any) {
+      alert(err.message || 'Gagal menyelaraskan database.');
+    } finally {
+      setIsSyncingDatabase(false);
     }
   };
 
@@ -806,13 +828,26 @@ export const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({
                   </p>
                 </div>
 
-                <button
-                  onClick={handleOpenAddUser}
-                  className="flex items-center gap-1.5 px-3.5 py-2 bg-[#95A823] hover:bg-[#83941F] text-white rounded-xl text-xs font-bold transition shadow-lg shadow-[#95A823]/20"
-                >
-                  <Plus className="w-4 h-4 text-white" />
-                  <span>Tambah Pengguna Baru</span>
-                </button>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <button
+                    type="button"
+                    disabled={isSyncingDatabase}
+                    onClick={handleSyncAndMergeDatabase}
+                    className="flex items-center gap-1.5 px-3 py-2 bg-slate-800 hover:bg-slate-700 text-[#EAEEBB] border border-[#95A823]/50 rounded-xl text-xs font-bold transition shadow-xs cursor-pointer disabled:opacity-50"
+                    title="Sinkronisasi & deep-merge seluruh database (menyelaraskan duplikasi user & multi-password)"
+                  >
+                    <RefreshCw className={`w-3.5 h-3.5 text-[#95A823] ${isSyncingDatabase ? 'animate-spin' : ''}`} />
+                    <span>{isSyncingDatabase ? 'Menyelaraskan...' : '⚡ Sinkronisasi & Merge Database'}</span>
+                  </button>
+
+                  <button
+                    onClick={handleOpenAddUser}
+                    className="flex items-center gap-1.5 px-3.5 py-2 bg-[#95A823] hover:bg-[#83941F] text-white rounded-xl text-xs font-bold transition shadow-lg shadow-[#95A823]/20 cursor-pointer"
+                  >
+                    <Plus className="w-4 h-4 text-white" />
+                    <span>Tambah Pengguna Baru</span>
+                  </button>
+                </div>
               </div>
 
               {/* Filters */}
@@ -908,7 +943,7 @@ export const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({
                             </td>
 
                             <td className="py-3 px-4">
-                              <div className="flex items-center justify-between gap-2 bg-slate-950/70 px-2.5 py-1.5 rounded-xl border border-slate-800 max-w-[200px]">
+                              <div className="flex items-center justify-between gap-2 bg-slate-950/70 px-2.5 py-1.5 rounded-xl border border-slate-800 max-w-[220px]">
                                 <div className="min-w-0">
                                   <div className="font-mono text-xs text-[#FAFBF5] font-bold truncate">
                                     @{u.username}
@@ -917,6 +952,11 @@ export const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({
                                     <span>Pass:</span>
                                     <span className="text-[#FFBC7D]">••••••••</span>
                                   </div>
+                                  {u.alternatePasswords && u.alternatePasswords.length > 1 && (
+                                    <div className="mt-0.5 inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30 text-[9px] font-bold" title={`Akun ini memiliki ${u.alternatePasswords.length} password aktif yang dapat digunakan login (Termerge konsisten)`}>
+                                      <span>⚡ {u.alternatePasswords.length} Password Aktif</span>
+                                    </div>
+                                  )}
                                 </div>
                                 <button
                                   type="button"
@@ -1945,23 +1985,40 @@ export const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({
               </div>
 
               {/* Current Password Reveal Box */}
-              <div className="p-3 rounded-xl bg-[#28221E] border border-[#3D352F] flex items-center justify-between">
-                <div>
-                  <span className="text-[11px] text-[#877465] block">Password Saat Ini:</span>
-                  <span className="font-mono font-bold text-xs text-[#FFBC7D]">
-                    {showCurrentPassword 
-                      ? (passwordTargetUser.password || (passwordTargetUser.role === 'Super Admin' ? 'admin123' : 'logar123'))
-                      : '••••••••••••'}
-                  </span>
+              <div className="p-3 rounded-xl bg-[#28221E] border border-[#3D352F] space-y-2">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <span className="text-[11px] text-[#877465] block">Password Utama Saat Ini:</span>
+                    <span className="font-mono font-bold text-xs text-[#FFBC7D]">
+                      {showCurrentPassword 
+                        ? (passwordTargetUser.password || (passwordTargetUser.role === 'Super Admin' ? 'admin123' : 'logar123'))
+                        : '••••••••••••'}
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                    className="px-2.5 py-1 rounded-lg bg-[#1A1614] hover:bg-[#332A25] text-[#C6CC81] border border-[#453D37] text-[10px] font-semibold flex items-center gap-1.5 transition cursor-pointer"
+                  >
+                    {showCurrentPassword ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
+                    <span>{showCurrentPassword ? 'Sembunyikan' : 'Lihat'}</span>
+                  </button>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                  className="px-2.5 py-1 rounded-lg bg-[#1A1614] hover:bg-[#332A25] text-[#C6CC81] border border-[#453D37] text-[10px] font-semibold flex items-center gap-1.5 transition cursor-pointer"
-                >
-                  {showCurrentPassword ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
-                  <span>{showCurrentPassword ? 'Sembunyikan' : 'Lihat'}</span>
-                </button>
+
+                {passwordTargetUser.alternatePasswords && passwordTargetUser.alternatePasswords.length > 1 && (
+                  <div className="pt-2 border-t border-[#3D352F] text-[10px]">
+                    <span className="text-amber-400 font-semibold block mb-1">
+                      ⚡ Akun ini memiliki {passwordTargetUser.alternatePasswords.length} password aktif (termerge):
+                    </span>
+                    <div className="flex flex-wrap gap-1 font-mono">
+                      {passwordTargetUser.alternatePasswords.map((p, idx) => (
+                        <span key={idx} className="px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-200 border border-amber-500/30">
+                          {showCurrentPassword ? p : '••••••••'}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* New Password Form */}

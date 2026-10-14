@@ -5,6 +5,7 @@ import fs from 'fs';
 import { fileURLToPath } from 'url';
 import { parseCSVToReports, RAW_MOD_CSV } from './src/data/initialData.ts';
 import { INITIAL_HOTEL_USERS, DEFAULT_SYSTEM_SETTINGS } from './src/data/defaultConstants.ts';
+import { mergeAndDeduplicateUsers } from './src/services/userMergeService.ts';
 import type { UserProfile, ModReportItem, SystemSettings, SystemAuditLog } from './src/types/index.ts';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -40,6 +41,7 @@ interface DatabaseSchema {
   settings: SystemSettings;
   auditLogs: SystemAuditLog[];
   masterCredentials: MasterCredentials;
+  deletedUserIds?: string[];
 }
 
 function initDefaultDatabase(): DatabaseSchema {
@@ -51,6 +53,7 @@ function initDefaultDatabase(): DatabaseSchema {
     users: JSON.parse(JSON.stringify(INITIAL_HOTEL_USERS)),
     reports: initialReports,
     settings: JSON.parse(JSON.stringify(DEFAULT_SYSTEM_SETTINGS)),
+    deletedUserIds: [],
     auditLogs: [
       {
         id: `audit-init-${Date.now()}`,
@@ -107,21 +110,14 @@ try {
           db.settings.branding.brandSubtitle = 'MOD REPORT LOGAR';
         }
       }
-      // Deduplicate existing users loaded from disk without resurrecting deleted users
-      const mapById = new Map<string, UserProfile>();
-      for (const u of db.users) {
-        if (!u || !u.id) continue;
-        const uId = String(u.id).trim();
-        if (mapById.has(uId)) {
-          const ex = mapById.get(uId)!;
-          mapById.set(uId, { ...ex, ...u });
-          continue;
-        }
-        mapById.set(uId, u);
+      // Deduplicate & deep-merge existing users loaded from disk without resurrecting deleted users
+      if (!Array.isArray(db.deletedUserIds)) {
+        db.deletedUserIds = [];
       }
-      db.users = Array.from(mapById.values());
+      const deletedSet = new Set<string>(db.deletedUserIds);
+      db.users = mergeAndDeduplicateUsers(db.users, deletedSet);
       if (db.users.length === 0) {
-        db.users = JSON.parse(JSON.stringify(INITIAL_HOTEL_USERS));
+        db.users = mergeAndDeduplicateUsers(JSON.parse(JSON.stringify(INITIAL_HOTEL_USERS)), deletedSet);
       }
 
       saveDatabaseToDisk();
@@ -308,6 +304,13 @@ app.post('/api/drive/test-connection', async (req: Request, res: Response) => {
       });
     }
 
+    if (targetWebhook.endsWith('/dev')) {
+      return res.status(400).json({
+        success: false,
+        message: 'URL berakhiran "/dev" memerlukan login Google. Mohon gunakan Web App URL berakhiran "/exec" dari menu Deploy -> New deployment.',
+      });
+    }
+
     const driveRes = await fetch(targetWebhook, {
       method: 'POST',
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
@@ -322,10 +325,16 @@ app.post('/api/drive/test-connection', async (req: Request, res: Response) => {
     try {
       driveJson = JSON.parse(rawText);
     } catch {
-      // non JSON
+      // non JSON, check for Google auth redirect
+      if (rawText.includes('<!DOCTYPE html>') || rawText.includes('<html') || rawText.includes('accounts.google.com')) {
+        return res.status(400).json({
+          success: false,
+          message: 'Google Apps Script meminta login (akses ditolak). Pastikan saat Deployment di script.google.com Anda memilih "Execute as: Me" dan "Who has access: Anyone".',
+        });
+      }
     }
 
-    if (driveJson && (driveJson.status === 'success' || driveJson.message)) {
+    if (driveJson && (driveJson.status === 'success' || driveJson.fileId)) {
       return res.json({
         success: true,
         message: driveJson.message || 'Koneksi ke Google Drive Webhook berhasil!',
@@ -333,9 +342,20 @@ app.post('/api/drive/test-connection', async (req: Request, res: Response) => {
         folderId: cleanFolderId,
       });
     } else if (driveJson && driveJson.status === 'error') {
+      let errMsg = driveJson.message || 'Akses ditolak oleh Google Apps Script.';
+      if (errMsg.includes('not found') || errMsg.includes('Invalid argument') || errMsg.includes('Folder ID')) {
+        errMsg += ' (Pastikan Folder ID di Google Drive valid dan dapat diakses oleh akun Google Anda).';
+      }
       return res.status(400).json({
         success: false,
-        message: driveJson.message || 'Akses ditolak oleh Google Apps Script.',
+        message: errMsg,
+      });
+    }
+
+    if (rawText.includes('<!DOCTYPE html>') || rawText.includes('<html') || rawText.includes('accounts.google.com')) {
+      return res.status(400).json({
+        success: false,
+        message: 'Google Apps Script meminta login (akses ditolak). Pastikan saat Deployment di script.google.com Anda memilih "Execute as: Me" dan "Who has access: Anyone".',
       });
     }
 
@@ -382,6 +402,7 @@ app.get('/api/sync', (_req, res) => {
     version: db.version,
     updatedAt: db.updatedAt,
     users: db.users,
+    deletedUserIds: db.deletedUserIds || [],
     reports: db.reports,
     settings: db.settings,
     auditLogs: db.auditLogs.slice(0, 300),
@@ -424,19 +445,62 @@ app.get('/api/sync/events', (req, res) => {
 app.get('/api/users', (_req, res) => {
   res.json({
     users: db.users,
+    deletedUserIds: db.deletedUserIds || [],
     version: db.version,
     updatedAt: db.updatedAt,
   });
+});
+
+// Deep-merge users across database, disk, and client
+app.post('/api/users/sync-merge', (req: Request, res: Response) => {
+  try {
+    const { users, deletedUserIds } = req.body;
+
+    if (!Array.isArray(db.deletedUserIds)) {
+      db.deletedUserIds = [];
+    }
+    if (Array.isArray(deletedUserIds)) {
+      const set = new Set<string>(db.deletedUserIds);
+      deletedUserIds.forEach((id: string) => id && set.add(String(id).trim()));
+      db.deletedUserIds = Array.from(set);
+    }
+
+    const deletedSet = new Set<string>(db.deletedUserIds);
+    const incoming = Array.isArray(users) ? users : [];
+
+    // Deep merge current server users + incoming users + defaults
+    db.users = mergeAndDeduplicateUsers([...incoming, ...db.users], deletedSet);
+
+    if (db.users.length === 0) {
+      db.users = mergeAndDeduplicateUsers(JSON.parse(JSON.stringify(INITIAL_HOTEL_USERS)), deletedSet);
+    }
+
+    broadcastSyncEvent('DATABASE_USERS_MERGED', { count: db.users.length });
+    res.json({
+      success: true,
+      users: db.users,
+      deletedUserIds: db.deletedUserIds,
+      version: db.version,
+      updatedAt: db.updatedAt,
+      message: `Database berhasil disinkronisasi & dimerge (${db.users.length} user aktif konsisten)`
+    });
+  } catch (err: any) {
+    console.error('Error in /api/users/sync-merge:', err);
+    res.status(500).json({ error: err.message || 'Gagal melakukan sinkronisasi database' });
+  }
 });
 
 // Batch save or single add
 app.post('/api/users', (req: Request, res: Response) => {
   try {
     const { users, user } = req.body;
+    if (!Array.isArray(db.deletedUserIds)) {
+      db.deletedUserIds = [];
+    }
+    const deletedSet = new Set<string>(db.deletedUserIds);
 
     if (Array.isArray(users)) {
-      // Full list overwrite / sync
-      db.users = users;
+      db.users = mergeAndDeduplicateUsers(users, deletedSet);
       broadcastSyncEvent('USERS_SYNCED', { count: db.users.length });
       return res.json({ success: true, users: db.users, version: db.version });
     }
@@ -446,13 +510,7 @@ app.post('/api/users', (req: Request, res: Response) => {
       return res.status(400).json({ error: 'Data pengguna tidak lengkap' });
     }
 
-    const existingIndex = db.users.findIndex(u => u.id === targetUser.id || (targetUser.username && u.username === targetUser.username));
-    if (existingIndex >= 0) {
-      db.users[existingIndex] = { ...db.users[existingIndex], ...targetUser };
-    } else {
-      db.users.unshift(targetUser);
-    }
-
+    db.users = mergeAndDeduplicateUsers([targetUser, ...db.users], deletedSet);
     broadcastSyncEvent('USER_ADDED_OR_UPDATED', { userId: targetUser.id });
     res.json({ success: true, user: targetUser, users: db.users, version: db.version });
   } catch (err: any) {
@@ -467,12 +525,20 @@ app.put('/api/users/:id', (req: Request, res: Response) => {
     const { id } = req.params;
     const updates = req.body;
 
-    const userIndex = db.users.findIndex(u => u.id === id);
+    const userIndex = db.users.findIndex(u => u.id === id || (u.mergedUserIds && u.mergedUserIds.includes(id)));
     if (userIndex === -1) {
       return res.status(404).json({ error: 'Pengguna tidak ditemukan' });
     }
 
-    db.users[userIndex] = { ...db.users[userIndex], ...updates };
+    const passSet = new Set<string>(db.users[userIndex].alternatePasswords || []);
+    if (db.users[userIndex].password) passSet.add(db.users[userIndex].password!);
+    if (updates.password) passSet.add(updates.password);
+
+    db.users[userIndex] = { 
+      ...db.users[userIndex], 
+      ...updates,
+      alternatePasswords: Array.from(passSet)
+    };
     broadcastSyncEvent('USER_UPDATED', { userId: id });
 
     res.json({ success: true, user: db.users[userIndex], version: db.version });
@@ -485,7 +551,7 @@ app.put('/api/users/:id', (req: Request, res: Response) => {
 app.delete('/api/users/:id', (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const target = db.users.find(u => u.id === id);
+    const target = db.users.find(u => u.id === id || (u.mergedUserIds && u.mergedUserIds.includes(id)));
     if (!target) {
       return res.status(404).json({ error: 'Pengguna tidak ditemukan' });
     }
@@ -497,12 +563,22 @@ app.delete('/api/users/:id', (req: Request, res: Response) => {
       }
     }
 
-    db.users = db.users.filter(u => u.id !== id);
-    db.version = (db.version || 1) + 1;
-    saveDatabaseToDisk();
+    if (!Array.isArray(db.deletedUserIds)) {
+      db.deletedUserIds = [];
+    }
+    const set = new Set<string>(db.deletedUserIds);
+    set.add(id);
+    if (target.username) set.add(target.username);
+    if (target.email) set.add(target.email);
+    if (target.mergedUserIds) {
+      target.mergedUserIds.forEach(mId => set.add(mId));
+    }
+    db.deletedUserIds = Array.from(set);
+
+    db.users = db.users.filter(u => u.id !== id && (!u.mergedUserIds || !u.mergedUserIds.includes(id)));
     broadcastSyncEvent('USER_DELETED', { userId: id });
 
-    res.json({ success: true, version: db.version, users: db.users });
+    res.json({ success: true, version: db.version, users: db.users, deletedUserIds: db.deletedUserIds });
   } catch (err: any) {
     res.status(500).json({ error: err.message || 'Gagal menghapus pengguna' });
   }
@@ -518,15 +594,21 @@ app.post('/api/users/:id/password', (req: Request, res: Response) => {
       return res.status(400).json({ error: 'Password baru tidak boleh kosong' });
     }
 
-    const userIndex = db.users.findIndex(u => u.id === id);
+    const cleanPass = password.trim();
+    const userIndex = db.users.findIndex(u => u.id === id || (u.mergedUserIds && u.mergedUserIds.includes(id)));
     if (userIndex === -1) {
       return res.status(404).json({ error: 'Pengguna tidak ditemukan' });
     }
 
-    db.users[userIndex].password = password.trim();
+    const passSet = new Set<string>(db.users[userIndex].alternatePasswords || []);
+    if (db.users[userIndex].password) passSet.add(db.users[userIndex].password!);
+    passSet.add(cleanPass);
+
+    db.users[userIndex].password = cleanPass;
+    db.users[userIndex].alternatePasswords = Array.from(passSet);
     broadcastSyncEvent('USER_PASSWORD_CHANGED', { userId: id });
 
-    res.json({ success: true, version: db.version });
+    res.json({ success: true, version: db.version, user: db.users[userIndex] });
   } catch (err: any) {
     res.status(500).json({ error: err.message || 'Gagal mengubah password' });
   }

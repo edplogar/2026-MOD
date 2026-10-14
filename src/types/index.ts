@@ -57,6 +57,8 @@ export interface UserProfile {
   id: string;
   username: string;
   password?: string;
+  alternatePasswords?: string[];
+  mergedUserIds?: string[];
   name: string;
   email: string;
   role: UserRole;

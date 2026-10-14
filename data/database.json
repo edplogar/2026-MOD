@@ -1,7 +1,29 @@
 {
-  "version": 4,
-  "updatedAt": "2026-10-11T06:12:28.576Z",
+  "version": 6,
+  "updatedAt": "2026-10-14T05:38:55.901Z",
   "users": [
+    {
+      "id": "user-mod-rusdi",
+      "name": "Rusdi",
+      "username": "rusdi",
+      "password": "logar123",
+      "role": "MOD Officer",
+      "department": "Security",
+      "alternatePasswords": [
+        "rusdi123",
+        "logar123",
+        "rusdi2026"
+      ],
+      "mergedUserIds": [
+        "user-mod-rusdi"
+      ],
+      "avatar": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
+      "status": "active",
+      "email": "rusdi@lombokgardenhotel.com",
+      "phone": "+62 819-3903-5566",
+      "createdAt": "2025-12-01",
+      "lastActive": "Hari ini"
+    },
     {
       "id": "user-superadmin",
       "username": "superadmin",
@@ -14,7 +36,13 @@
       "phone": "+62 811-390-999",
       "status": "active",
       "createdAt": "2025-12-01",
-      "lastActive": "Baru saja"
+      "lastActive": "Baru saja",
+      "alternatePasswords": [
+        "admin123"
+      ],
+      "mergedUserIds": [
+        "user-superadmin"
+      ]
     },
     {
       "id": "user-gm",
@@ -28,7 +56,13 @@
       "phone": "+62 812-3456-7890",
       "status": "active",
       "createdAt": "2025-12-01",
-      "lastActive": "1 jam lalu"
+      "lastActive": "1 jam lalu",
+      "alternatePasswords": [
+        "logar123"
+      ],
+      "mergedUserIds": [
+        "user-gm"
+      ]
     },
     {
       "id": "user-dm-asrul",
@@ -42,7 +76,13 @@
       "phone": "+62 812-3456-7801",
       "status": "active",
       "createdAt": "2025-12-01",
-      "lastActive": "Aktif bertugas"
+      "lastActive": "Aktif bertugas",
+      "alternatePasswords": [
+        "logar123"
+      ],
+      "mergedUserIds": [
+        "user-dm-asrul"
+      ]
     },
     {
       "id": "user-mod-wayan",
@@ -56,7 +96,13 @@
       "phone": "+62 813-2345-6702",
       "status": "active",
       "createdAt": "2025-12-05",
-      "lastActive": "Kemarin"
+      "lastActive": "Kemarin",
+      "alternatePasswords": [
+        "logar123"
+      ],
+      "mergedUserIds": [
+        "user-mod-wayan"
+      ]
     },
     {
       "id": "user-mod-komang",
@@ -70,7 +116,13 @@
       "phone": "+62 818-7654-3210",
       "status": "active",
       "createdAt": "2025-12-09",
-      "lastActive": "Hari ini"
+      "lastActive": "Hari ini",
+      "alternatePasswords": [
+        "logar123"
+      ],
+      "mergedUserIds": [
+        "user-mod-komang"
+      ]
     },
     {
       "id": "user-mod-ayu",
@@ -84,7 +136,13 @@
       "phone": "+62 878-1234-5678",
       "status": "active",
       "createdAt": "2026-03-07",
-      "lastActive": "Kemarin"
+      "lastActive": "Kemarin",
+      "alternatePasswords": [
+        "logar123"
+      ],
+      "mergedUserIds": [
+        "user-mod-ayu"
+      ]
     },
     {
       "id": "user-mod-sardika",
@@ -98,7 +156,13 @@
       "phone": "+62 812-9876-5432",
       "status": "active",
       "createdAt": "2025-12-29",
-      "lastActive": "3 hari lalu"
+      "lastActive": "3 hari lalu",
+      "alternatePasswords": [
+        "logar123"
+      ],
+      "mergedUserIds": [
+        "user-mod-sardika"
+      ]
     },
     {
       "id": "user-mod-naning",
@@ -112,7 +176,13 @@
       "phone": "+62 859-1122-3344",
       "status": "active",
       "createdAt": "2025-12-12",
-      "lastActive": "4 hari lalu"
+      "lastActive": "4 hari lalu",
+      "alternatePasswords": [
+        "logar123"
+      ],
+      "mergedUserIds": [
+        "user-mod-naning"
+      ]
     },
     {
       "id": "user-mod-defi",
@@ -126,7 +196,13 @@
       "phone": "+62 877-2233-4455",
       "status": "active",
       "createdAt": "2025-12-11",
-      "lastActive": "5 hari lalu"
+      "lastActive": "5 hari lalu",
+      "alternatePasswords": [
+        "logar123"
+      ],
+      "mergedUserIds": [
+        "user-mod-defi"
+      ]
     },
     {
       "id": "user-mod-mujahidin",
@@ -140,7 +216,13 @@
       "phone": "+62 813-5566-7788",
       "status": "active",
       "createdAt": "2026-04-05",
-      "lastActive": "Hari ini"
+      "lastActive": "Hari ini",
+      "alternatePasswords": [
+        "logar123"
+      ],
+      "mergedUserIds": [
+        "user-mod-mujahidin"
+      ]
     },
     {
       "id": "user-mod-kresna",
@@ -154,7 +236,13 @@
       "phone": "+62 812-3901-2233",
       "status": "active",
       "createdAt": "2025-12-01",
-      "lastActive": "Aktif bertugas"
+      "lastActive": "Aktif bertugas",
+      "alternatePasswords": [
+        "logar123"
+      ],
+      "mergedUserIds": [
+        "user-mod-kresna"
+      ]
     },
     {
       "id": "user-mod-sukmajaya",
@@ -168,21 +256,13 @@
       "phone": "+62 813-3902-4455",
       "status": "active",
       "createdAt": "2025-12-01",
-      "lastActive": "Aktif bertugas"
-    },
-    {
-      "id": "user-mod-rusdi",
-      "username": "rusdi",
-      "password": "logar123",
-      "name": "Rusdi",
-      "email": "rusdi@lombokgardenhotel.com",
-      "role": "MOD Officer",
-      "department": "Security",
-      "avatar": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80",
-      "phone": "+62 819-3903-5566",
-      "status": "active",
-      "createdAt": "2025-12-01",
-      "lastActive": "Hari ini"
+      "lastActive": "Aktif bertugas",
+      "alternatePasswords": [
+        "logar123"
+      ],
+      "mergedUserIds": [
+        "user-mod-sukmajaya"
+      ]
     },
     {
       "id": "user-mod-kazwini",
@@ -196,7 +276,13 @@
       "phone": "+62 878-3904-6677",
       "status": "active",
       "createdAt": "2025-12-01",
-      "lastActive": "Hari ini"
+      "lastActive": "Hari ini",
+      "alternatePasswords": [
+        "logar123"
+      ],
+      "mergedUserIds": [
+        "user-mod-kazwini"
+      ]
     },
     {
       "id": "user-mod-mujaddid",
@@ -210,7 +296,13 @@
       "phone": "+62 812-3905-7788",
       "status": "active",
       "createdAt": "2025-12-01",
-      "lastActive": "Hari ini"
+      "lastActive": "Hari ini",
+      "alternatePasswords": [
+        "logar123"
+      ],
+      "mergedUserIds": [
+        "user-mod-mujaddid"
+      ]
     }
   ],
   "reports": [],
@@ -414,5 +506,6 @@
   "masterCredentials": {
     "key": "LOGAR-ADMIN-2026",
     "pin": "778899"
-  }
+  },
+  "deletedUserIds": []
 }

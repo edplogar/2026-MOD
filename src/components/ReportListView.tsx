@@ -236,16 +236,17 @@ export const ReportListView: React.FC<ReportListViewProps> = ({
               </button>
             )}
 
-            {reports.length > 0 && onClearAllReports && (
+            {/* Tombol Hapus Semua Laporan: Khusus role Super Admin saja */}
+            {currentUser.role === 'Super Admin' && reports.length > 0 && onClearAllReports && (
               <button
                 type="button"
                 onClick={() => {
-                  if (window.confirm('PERINGATAN: Apakah Anda yakin ingin menghapus SEMUA data laporan inspeksi? Seluruh riwayat laporan akan dikosongkan.')) {
+                  if (window.confirm('PERINGATAN SUPER ADMIN: Apakah Anda yakin ingin menghapus SEMUA data laporan inspeksi? Seluruh riwayat laporan akan dikosongkan permanen.')) {
                     onClearAllReports();
                   }
                 }}
                 className="flex items-center gap-1.5 px-3 py-1.5 bg-[#FAFBF5] hover:bg-[#FBEBE7] text-[#C25941] border border-[#F2D7D0] rounded-xl text-xs font-bold transition cursor-pointer"
-                title="Hapus seluruh data laporan inspeksi"
+                title="Hapus seluruh data laporan inspeksi (Akses Khusus Super Admin)"
               >
                 <Trash2 className="w-3.5 h-3.5" />
                 <span>Hapus Semua Laporan</span>
