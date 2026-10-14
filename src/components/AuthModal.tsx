@@ -184,7 +184,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 </span>
               </div>
               <p className="text-xs text-[#C6CC81] font-mono mt-0.5 truncate">
-                @{currentUser.username || currentUser.email.split('@')[0]}
+                @{currentUser.username || (currentUser.email || '').split('@')[0]}
               </p>
               <p className="text-[11px] text-[#EAEEBB] mt-0.5 truncate flex items-center justify-center sm:justify-start gap-1.5">
                 <Building2 className="w-3 h-3 text-[#C6CC81]" />

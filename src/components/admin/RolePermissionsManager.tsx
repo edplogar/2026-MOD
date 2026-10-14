@@ -334,9 +334,9 @@ export const RolePermissionsManager: React.FC<RolePermissionsManagerProps> = ({
 
   const filteredUsers = useMemo<UserProfile[]>(() => {
     const list = users.filter((u: UserProfile) => 
-      u.name.toLowerCase().includes(userSearchQuery.toLowerCase()) ||
-      u.role.toLowerCase().includes(userSearchQuery.toLowerCase()) ||
-      u.department.toLowerCase().includes(userSearchQuery.toLowerCase())
+      (u.name || '').toLowerCase().includes(userSearchQuery.toLowerCase()) ||
+      (u.role || '').toLowerCase().includes(userSearchQuery.toLowerCase()) ||
+      (u.department || '').toLowerCase().includes(userSearchQuery.toLowerCase())
     );
     const seen = new Set<string>();
     return list.filter((u: UserProfile): u is UserProfile => {

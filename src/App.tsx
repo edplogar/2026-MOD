@@ -139,10 +139,11 @@ export default function App() {
     // Real-time synchronization for MOD reports across all devices & IPs
     const unsubReports = subscribeToFirestoreReports(
       (cloudReports) => {
-        if (cloudReports) {
-          setReports(cloudReports);
+        if (cloudReports && cloudReports.length > 0) {
           saveReports(cloudReports);
-          setSyncState(getSyncState(cloudReports));
+          const mergedAll = loadReports();
+          setReports(mergedAll);
+          setSyncState(getSyncState(mergedAll));
         }
       },
       (err) => console.warn('Real-time reports listener note:', err)

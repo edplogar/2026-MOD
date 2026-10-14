@@ -29,6 +29,70 @@ export function sanitizeReportsForStorage(reports: ModReportItem[]): ModReportIt
   }));
 }
 
+export function parseReportTimestampMs(report: ModReportItem): number {
+  if (!report) return 0;
+
+  if (report.id && report.id.startsWith('rep-')) {
+    const parts = report.id.split('-');
+    if (parts.length >= 2) {
+      const num = parseInt(parts[1], 10);
+      if (!isNaN(num) && num > 1600000000000) {
+        return num;
+      }
+    }
+  }
+
+  const dateStr = (report.date || '').trim();
+  const timeStr = (report.time || '00:00:00').trim();
+
+  if (dateStr) {
+    let year = 2026;
+    let month = 10;
+    let day = 1;
+
+    if (dateStr.includes('-')) {
+      const parts = dateStr.split('-').map(Number);
+      if (parts.length >= 3) {
+        year = parts[0] || 2026;
+        month = parts[1] || 1;
+        day = parts[2] || 1;
+      }
+    } else if (dateStr.includes('/')) {
+      const parts = dateStr.split('/').map(Number);
+      if (parts.length >= 3) {
+        if (parts[0] > 12 && parts[1] <= 12) {
+          day = parts[0];
+          month = parts[1];
+          year = parts[2];
+        } else {
+          month = parts[0];
+          day = parts[1];
+          year = parts[2];
+        }
+      }
+    }
+
+    const timeParts = timeStr.split(':').map(Number);
+    const hh = timeParts[0] || 0;
+    const mm = timeParts[1] || 0;
+    const ss = timeParts[2] || 0;
+
+    const d = new Date(year, Math.max(0, month - 1), day, hh, mm, ss);
+    if (!isNaN(d.getTime())) {
+      return d.getTime();
+    }
+  }
+
+  if (report.timestamp) {
+    const d = new Date(report.timestamp);
+    if (!isNaN(d.getTime())) {
+      return d.getTime();
+    }
+  }
+
+  return 0;
+}
+
 export function mergeReports(existing: ModReportItem[], incoming: ModReportItem[]): ModReportItem[] {
   const map = new Map<string, ModReportItem>();
 
@@ -70,11 +134,7 @@ export function mergeReports(existing: ModReportItem[], incoming: ModReportItem[
   }
 
   const mergedList = Array.from(map.values());
-  mergedList.sort((a, b) => {
-    const dtA = `${a.date || ''}T${a.time || '00:00'}`;
-    const dtB = `${b.date || ''}T${b.time || '00:00'}`;
-    return dtB.localeCompare(dtA);
-  });
+  mergedList.sort((a, b) => parseReportTimestampMs(b) - parseReportTimestampMs(a));
 
   return mergedList;
 }

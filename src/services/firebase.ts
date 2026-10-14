@@ -25,6 +25,7 @@ import {
 } from 'firebase/auth';
 import firebaseConfig from '../../firebase-applet-config.json';
 import { ModReportItem, UserProfile, SystemSettings, SystemAuditLog } from '../types/index.ts';
+import { parseReportTimestampMs } from './storageService';
 
 // Set Firestore SDK logger to silent to suppress internal connection backoff noise
 try {
@@ -287,12 +288,8 @@ export function subscribeToFirestoreReports(
         const data = d.data() as ModReportItem;
         items.push({ ...data, id: d.id });
       });
-      // Sort newest first by date and time
-      items.sort((a, b) => {
-        const dtA = `${a.date} ${a.time}`;
-        const dtB = `${b.date} ${b.time}`;
-        return dtB.localeCompare(dtA);
-      });
+      // Sort newest first by timestamp
+      items.sort((a, b) => parseReportTimestampMs(b) - parseReportTimestampMs(a));
       onUpdate(items);
     },
     (error) => {
@@ -306,6 +303,21 @@ export function subscribeToFirestoreReports(
   );
 }
 
+function prepareReportForFirestore(report: ModReportItem, nowIso?: string): ModReportItem {
+  return {
+    ...report,
+    synced: true,
+    syncedAt: nowIso || new Date().toISOString(),
+    pictures: (report.pictures || []).map(p => {
+      const isLargeDataUrl = p.thumbnailUrl && p.thumbnailUrl.startsWith('data:') && p.thumbnailUrl.length > 1000;
+      return {
+        ...p,
+        thumbnailUrl: isLargeDataUrl ? (p.driveUrl || '') : p.thumbnailUrl,
+      };
+    }),
+  };
+}
+
 /**
  * Upsert a single report in Firestore
  */
@@ -313,11 +325,7 @@ export async function saveReportToFirestore(report: ModReportItem): Promise<void
   if (firestoreQuotaExceededState) return;
   const path = `reports/${report.id}`;
   try {
-    const cleanedReport = sanitizeForFirestore({
-      ...report,
-      synced: true,
-      syncedAt: new Date().toISOString(),
-    });
+    const cleanedReport = sanitizeForFirestore(prepareReportForFirestore(report));
     await setDoc(doc(db, 'reports', report.id), cleanedReport);
   } catch (error) {
     if (isQuotaExceededError(error)) {
@@ -341,11 +349,7 @@ export async function batchSyncReportsToFirestore(reports: ModReportItem[]): Pro
 
     for (const report of reports) {
       const ref = doc(db, 'reports', report.id);
-      const cleanedReport = sanitizeForFirestore({
-        ...report,
-        synced: true,
-        syncedAt: now,
-      });
+      const cleanedReport = sanitizeForFirestore(prepareReportForFirestore(report, now));
       batch.set(ref, cleanedReport);
       count++;
     }

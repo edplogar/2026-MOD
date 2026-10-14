@@ -281,10 +281,11 @@ export function deleteUser(id: string): boolean {
 export function setUsersFromCloud(cloudUsers: UserProfile[]): void {
   if (!cloudUsers || cloudUsers.length === 0) return;
   const deletedIds = getDeletedUserIds();
-  const clean = deduplicateUsers(cloudUsers).filter(u => !deletedIds.has(u.id));
-  saveAllUsers(clean);
+  const existingLocal = getAllUsers();
+  const merged = mergeAndDeduplicateUsers([...cloudUsers, ...existingLocal], deletedIds);
+  saveAllUsers(merged);
   try {
-    window.dispatchEvent(new CustomEvent('logar_users_updated', { detail: clean }));
+    window.dispatchEvent(new CustomEvent('logar_users_updated', { detail: merged }));
   } catch {
     // ignore in non-browser
   }

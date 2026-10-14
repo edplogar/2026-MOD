@@ -318,7 +318,7 @@ export const NewReportModal: React.FC<NewReportModalProps> = ({
                       </span>
                     </div>
                     <p className="text-[10px] text-[#877465] leading-tight mt-0.5 truncate">
-                      Dept: <span className="text-[#231E1B] font-semibold">{currentUser.department}</span> &bull; @{currentUser.username || currentUser.email.split('@')[0]}
+                      Dept: <span className="text-[#231E1B] font-semibold">{currentUser.department}</span> &bull; @{currentUser.username || (currentUser.email || '').split('@')[0]}
                     </p>
                   </div>
                 </div>

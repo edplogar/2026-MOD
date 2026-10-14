@@ -4,6 +4,7 @@ import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
 import { parseCSVToReports, RAW_MOD_CSV } from './src/data/initialData.ts';
+import { parseReportTimestampMs } from './src/services/storageService.ts';
 import { INITIAL_HOTEL_USERS, DEFAULT_SYSTEM_SETTINGS } from './src/data/defaultConstants.ts';
 import { mergeAndDeduplicateUsers } from './src/services/userMergeService.ts';
 import type { UserProfile, ModReportItem, SystemSettings, SystemAuditLog } from './src/types/index.ts';
@@ -680,11 +681,7 @@ export function mergeReports(existing: ModReportItem[], incoming: ModReportItem[
   }
 
   const mergedList = Array.from(map.values());
-  mergedList.sort((a, b) => {
-    const dtA = `${a.date || ''}T${a.time || '00:00'}`;
-    const dtB = `${b.date || ''}T${b.time || '00:00'}`;
-    return dtB.localeCompare(dtA);
-  });
+  mergedList.sort((a, b) => parseReportTimestampMs(b) - parseReportTimestampMs(a));
 
   return mergedList;
 }

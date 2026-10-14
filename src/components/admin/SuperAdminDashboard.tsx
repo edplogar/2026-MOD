@@ -267,9 +267,9 @@ export const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({
     const list = users.filter(u => {
       if (userSearch) {
         const q = userSearch.toLowerCase();
-        const mName = u.name.toLowerCase().includes(q);
-        const mEmail = u.email.toLowerCase().includes(q);
-        const mDept = u.department.toLowerCase().includes(q);
+        const mName = (u.name || '').toLowerCase().includes(q);
+        const mEmail = (u.email || '').toLowerCase().includes(q);
+        const mDept = (u.department || '').toLowerCase().includes(q);
         if (!mName && !mEmail && !mDept) return false;
       }
       if (roleFilter !== 'all' && u.role !== roleFilter) return false;
@@ -365,7 +365,7 @@ export const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({
       return;
     }
 
-    const cleanUser = (formUsername.trim().toLowerCase().replace(/[^a-zA-Z0-9_]/g, '') || formEmail.split('@')[0]);
+    const cleanUser = (formUsername.trim().toLowerCase().replace(/[^a-zA-Z0-9_]/g, '') || (formEmail || '').split('@')[0]);
 
     if (editingUser) {
       // Update

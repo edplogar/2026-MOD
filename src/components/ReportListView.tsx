@@ -36,6 +36,7 @@ import { getDriveFolderUrl } from '../services/driveSyncService';
 import { getSystemSettings } from '../services/systemSettingsService';
 import { getUserPermissions } from '../services/permissionService';
 import { isDateOnOrAfterOctober2026 } from '../data/initialData';
+import { parseReportTimestampMs } from '../services/storageService';
 import { getReportResolutionItem, isFollowUpFinding } from '../services/kpiResolutionService';
 
 export type SearchScope = 'all' | 'location' | 'officer' | 'description';
@@ -97,18 +98,20 @@ export const ReportListView: React.FC<ReportListViewProps> = ({
 
   // Filtered reports with real-time multi-field matching
   const filteredReports = useMemo(() => {
-    return reports.filter(item => {
-      // Must be on or after October 2026 (exclude 2025 historical seed data)
-      const dateVal = item.date || item.timestamp || '';
-      if (dateVal.includes('2025')) return false;
-      if (!isDateOnOrAfterOctober2026(dateVal)) return false;
+    const list = reports.filter(item => {
+      // Live user-created reports are ALWAYS preserved
+      if (!item.id?.startsWith('rep-')) {
+        const dateVal = item.date || item.timestamp || '';
+        if (dateVal.includes('2025')) return false;
+        if (!isDateOnOrAfterOctober2026(dateVal)) return false;
+      }
 
       // Real-time search keyword
       if (searchTerm.trim()) {
         const query = searchTerm.trim().toLowerCase();
-        const matchesLoc = item.location.toLowerCase().includes(query) || (item.areaGroup && item.areaGroup.toLowerCase().includes(query));
-        const matchesOfficer = item.officerName.toLowerCase().includes(query);
-        const matchesDesc = item.problem.toLowerCase().includes(query) || (item.notes && item.notes.toLowerCase().includes(query)) || (item.followUpDept && item.followUpDept.toLowerCase().includes(query));
+        const matchesLoc = (item.location || '').toLowerCase().includes(query) || (item.areaGroup && item.areaGroup.toLowerCase().includes(query));
+        const matchesOfficer = (item.officerName || '').toLowerCase().includes(query);
+        const matchesDesc = (item.problem || '').toLowerCase().includes(query) || (item.notes && item.notes.toLowerCase().includes(query)) || (item.followUpDept && item.followUpDept.toLowerCase().includes(query));
 
         if (searchScope === 'location' && !matchesLoc) return false;
         if (searchScope === 'officer' && !matchesOfficer) return false;
@@ -133,6 +136,9 @@ export const ReportListView: React.FC<ReportListViewProps> = ({
 
       return true;
     });
+
+    // Guarantee newest reports (like user's new inputs) appear AT THE VERY TOP
+    return list.sort((a, b) => parseReportTimestampMs(b) - parseReportTimestampMs(a));
   }, [reports, searchTerm, searchScope, selectedDept, selectedStatus, selectedOfficer]);
 
   const handleResetFilters = () => {
@@ -503,7 +509,7 @@ export const ReportListView: React.FC<ReportListViewProps> = ({
                           <span>{report.date}</span>
                         </div>
                         <div className="text-[11px] text-[#70635A] font-mono mt-0.5">
-                          {report.time} &bull; {report.shift.split(' ')[0]}
+                          {report.time} &bull; {(report.shift || '').split(' ')[0] || '-'}
                         </div>
                       </td>
 
