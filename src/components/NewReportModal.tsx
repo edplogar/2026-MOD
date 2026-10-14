@@ -99,7 +99,28 @@ export const NewReportModal: React.FC<NewReportModalProps> = ({
     `${String(initialNow.getHours()).padStart(2, '0')}:${String(initialNow.getMinutes()).padStart(2, '0')}:${String(initialNow.getSeconds()).padStart(2, '0')}`
   );
   const [shift, setShift] = useState<ShiftType>(getAutoShift(initialNow));
-  const [location, setLocation] = useState(HOTEL_LOCATIONS[0]);
+  // Dynamic Locations list from System Settings & Realtime Event Listener
+  const getActiveLocationList = (): string[] => {
+    try {
+      const settings = getSystemSettings();
+      if (settings && Array.isArray(settings.locations) && settings.locations.length > 0) {
+        const activeNames = settings.locations
+          .filter(l => l.isActive !== false)
+          .map(l => l.name)
+          .filter(Boolean);
+        if (activeNames.length > 0) return activeNames;
+      }
+    } catch (e) {
+      console.warn('Failed loading dynamic locations:', e);
+    }
+    return HOTEL_LOCATIONS;
+  };
+
+  const [availableLocations, setAvailableLocations] = useState<string[]>(getActiveLocationList);
+  const [location, setLocation] = useState<string>(() => {
+    const list = getActiveLocationList();
+    return list[0] || HOTEL_LOCATIONS[0];
+  });
   const [customLocation, setCustomLocation] = useState('');
   const [problem, setProblem] = useState('');
   const [followUpDept, setFollowUpDept] = useState<Department>('None');
@@ -127,6 +148,28 @@ export const NewReportModal: React.FC<NewReportModalProps> = ({
     updateToRealtime();
     const intervalTimer = setInterval(updateToRealtime, 1000);
     return () => clearInterval(intervalTimer);
+  }, [isOpen]);
+
+  // Real-time listener: refresh active locations when Super Admin adds/edits locations in backend
+  useEffect(() => {
+    const refreshLocations = () => {
+      const list = getActiveLocationList();
+      setAvailableLocations(list);
+      setLocation(prev => (list.includes(prev) || prev === 'Lainnya' ? prev : (list[0] || HOTEL_LOCATIONS[0])));
+    };
+
+    if (isOpen) {
+      refreshLocations();
+    }
+
+    const handleSettingsUpdated = () => {
+      refreshLocations();
+    };
+
+    window.addEventListener('logar_settings_updated', handleSettingsUpdated);
+    return () => {
+      window.removeEventListener('logar_settings_updated', handleSettingsUpdated);
+    };
   }, [isOpen]);
   
   // Pictures and compression state
@@ -198,24 +241,28 @@ export const NewReportModal: React.FC<NewReportModalProps> = ({
     const finalProblem = problem.trim();
 
     // Area Grouping
-    const locLower = finalLocation.toLowerCase();
-    let areaGroup = 'Public Area';
-    if (locLower.includes('deluxe') || locLower.includes('kamar') || locLower.includes('floor') || locLower.includes('lantai')) {
-      areaGroup = 'Deluxe & Rooms';
-    } else if (locLower.includes('resto') || locLower.includes('kitchen') || locLower.includes('pantry')) {
-      areaGroup = 'F&B & Resto';
-    } else if (locLower.includes('pool') || locLower.includes('kolam') || locLower.includes('garden')) {
-      areaGroup = 'Pool & Garden';
-    } else if (locLower.includes('parkir') || locLower.includes('lobby')) {
-      areaGroup = 'Lobby & Parking';
-    } else if (locLower.includes('melati') || locLower.includes('edelweis') || locLower.includes('hall')) {
-      areaGroup = 'Meeting & Ballrooms';
-    } else if (locLower.includes('genset') || locLower.includes('laundry') || locLower.includes('loker') || locLower.includes('gudang')) {
-      areaGroup = 'Back of House';
+    const settings = getSystemSettings();
+    const matchedLocConfig = settings.locations?.find(l => l.name === finalLocation);
+    let areaGroup = matchedLocConfig?.areaGroup || 'Public Area';
+
+    if (!matchedLocConfig) {
+      const locLower = finalLocation.toLowerCase();
+      if (locLower.includes('deluxe') || locLower.includes('kamar') || locLower.includes('floor') || locLower.includes('lantai')) {
+        areaGroup = 'Deluxe & Rooms';
+      } else if (locLower.includes('resto') || locLower.includes('kitchen') || locLower.includes('pantry')) {
+        areaGroup = 'F&B & Resto';
+      } else if (locLower.includes('pool') || locLower.includes('kolam') || locLower.includes('garden')) {
+        areaGroup = 'Pool & Garden';
+      } else if (locLower.includes('parkir') || locLower.includes('lobby')) {
+        areaGroup = 'Lobby & Parking';
+      } else if (locLower.includes('melati') || locLower.includes('edelweis') || locLower.includes('hall')) {
+        areaGroup = 'Meeting & Ballrooms';
+      } else if (locLower.includes('genset') || locLower.includes('laundry') || locLower.includes('loker') || locLower.includes('gudang')) {
+        areaGroup = 'Back of House';
+      }
     }
 
     // Ensure all pictures have folder metadata and synced status
-    const settings = getSystemSettings();
     const folderId = settings.driveFolderId || '1LG_MOD_DRIVE_FOLDER_2026';
     const folderName = settings.driveFolderName || 'HOTEL LOMBOK GARDEN / MOD REPORTS 2026';
     const finalPictures = uploadedPictures.map(p => {
@@ -430,8 +477,8 @@ export const NewReportModal: React.FC<NewReportModalProps> = ({
               }}
               className="w-full px-3 py-2 text-xs rounded-xl border border-[#D9DF98] bg-[#FAFBF5] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#95A823]/20 focus:border-[#95A823] font-semibold text-[#231E1B] mb-2"
             >
-              {HOTEL_LOCATIONS.map(loc => (
-                <option key={loc} value={loc}>{loc}</option>
+              {availableLocations.map((loc, idx) => (
+                <option key={loc ? `${loc}_${idx}` : `loc_${idx}`} value={loc}>{loc}</option>
               ))}
               <option value="Lainnya">Lainnya (Ketik Manual)...</option>
             </select>

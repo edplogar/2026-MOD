@@ -1,5 +1,16 @@
 import React, { useMemo, useState } from 'react';
 import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  ArcElement,
+  Title,
+  Tooltip,
+  Legend,
+} from 'chart.js';
+import { Bar, Doughnut } from 'react-chartjs-2';
+import {
   Clock,
   CheckCircle2,
   AlertTriangle,
@@ -14,9 +25,18 @@ import {
   AlertCircle,
   RotateCcw
 } from 'lucide-react';
-import { Bar, Doughnut } from 'react-chartjs-2';
 import { ModReportItem, ReportStatus, RolePermissionConfig } from '../types/index.ts';
 import { calculateResolutionKpi, ResolutionKpiSummary, ReportResolutionItem } from '../services/kpiResolutionService';
+
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  ArcElement,
+  Title,
+  Tooltip,
+  Legend
+);
 
 interface ResolutionKpiSectionProps {
   reports: ModReportItem[];
@@ -381,10 +401,10 @@ export const ResolutionKpiSection: React.FC<ResolutionKpiSectionProps> = ({
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#F0F2E2] bg-white">
-                {kpi.departmentStats.map((dept) => {
+                {kpi.departmentStats.map((dept, idx) => {
                   const isCompliant = dept.avgResolutionHours <= slaTargetHours;
                   return (
-                    <tr key={dept.department} className="hover:bg-[#FAFBF5] transition">
+                    <tr key={dept.department || `dept_${idx}`} className="hover:bg-[#FAFBF5] transition">
                       <td className="py-3 px-4 font-bold text-[#231E1B]">
                         <span className="flex items-center gap-2">
                           <Building2 className="w-3.5 h-3.5 text-[#95A823]" />
@@ -461,14 +481,14 @@ export const ResolutionKpiSection: React.FC<ResolutionKpiSectionProps> = ({
             </div>
           ) : (
             <div className="space-y-2.5">
-              {kpi.activeAgingFindings.map((item) => {
+              {kpi.activeAgingFindings.map((item, idx) => {
                 const rep = item.report;
                 const isOverdue = item.durationHours > 12;
                 const isWarning = item.durationHours > 4 && item.durationHours <= 12;
 
                 return (
                   <div
-                    key={rep.id}
+                    key={rep.id ? `${rep.id}_${idx}` : `rep_aging_${idx}`}
                     className={`p-3.5 sm:p-4 rounded-2xl border transition flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
                       isOverdue 
                         ? 'bg-[#FBEBE7]/40 border-[#F2D7D0] hover:border-[#C25941]' 

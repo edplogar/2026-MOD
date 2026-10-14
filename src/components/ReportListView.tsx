@@ -487,7 +487,7 @@ export const ReportListView: React.FC<ReportListViewProps> = ({
                   const itemIndex = (currentPage - 1) * pageSize + idx + 1;
                   return (
                     <tr 
-                      key={report.id}
+                      key={report.id ? `${report.id}_${idx}` : `rep_${itemIndex}_${idx}`}
                       className="hover:bg-[#FAFBF5] transition-colors group"
                     >
                       {/* Index */}
@@ -731,7 +731,7 @@ export const ReportListView: React.FC<ReportListViewProps> = ({
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {activePhotoModal.report.pictures.map((pic, idx) => (
                   <div
-                    key={pic.id || idx}
+                    key={pic.id ? `${pic.id}_${idx}` : `pic_${idx}`}
                     className="border border-[#E2E7B8] rounded-2xl p-3.5 bg-[#FAFBF5] flex flex-col justify-between"
                   >
                     <div>

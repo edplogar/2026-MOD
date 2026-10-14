@@ -393,8 +393,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         </div>
       </div>
 
-      {/* 5 Big KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+      {/* 4 Primary KPI Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* KPI 1: Total Inspeksi */}
         <div 
           onClick={() => {
@@ -542,29 +542,6 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             <span className="text-[#95A823] font-bold text-[11px]">
               Target &le; 6 Jam
             </span>
-          </div>
-        </div>
-
-        {/* KPI 5: Google Drive & Kompresi Storage */}
-        <div className="bg-gradient-to-br from-[#231E1B] to-[#362F2B] text-white rounded-3xl p-5 shadow-md border border-[#4A403A]">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-[#EAEEBB] uppercase tracking-wider flex items-center gap-1.5">
-              <HardDrive className="w-4 h-4 text-[#95A823]" />
-              Drive Kompresi
-            </span>
-            <span className="text-[10px] font-black bg-[#95A823]/30 text-[#EAEEBB] px-2 py-0.5 rounded-full border border-[#95A823]/50">
-              Hemat {stats.storage.percentageSaved}%
-            </span>
-          </div>
-          <div className="mt-3 flex items-baseline gap-2">
-            <span className="text-2xl font-black text-white truncate">
-              {formatBytes(stats.storage.savedBytes)}
-            </span>
-            <span className="text-xs text-[#D9DF98]">hemat</span>
-          </div>
-          <div className="mt-3 pt-3 border-t border-[#4A403A] flex items-center justify-between text-xs text-slate-300">
-            <span className="truncate">{stats.storage.totalPictures} bukti foto</span>
-            <span className="text-[#95A823] font-bold shrink-0">Sinkron</span>
           </div>
         </div>
       </div>
@@ -756,9 +733,9 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               </button>
             </div>
             <div className="space-y-2">
-              {urgentReports.slice(0, 2).map((item) => (
+              {urgentReports.slice(0, 2).map((item, idx) => (
                 <div 
-                  key={item.id}
+                  key={item.id ? `${item.id}_${idx}` : `urgent_${idx}`}
                   className="bg-[#FDF9EE] border border-[#EEDFB8] rounded-2xl p-2.5 text-xs"
                 >
                   <div className="flex items-center justify-between font-bold text-[#231E1B]">

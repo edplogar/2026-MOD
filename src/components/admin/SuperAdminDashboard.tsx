@@ -962,8 +962,8 @@ export const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({
                           </td>
                         </tr>
                       ) : (
-                        filteredUsers.map((u) => (
-                          <tr key={u.id} className="hover:bg-slate-800/50 transition">
+                        filteredUsers.map((u, idx) => (
+                          <tr key={u.id ? `${u.id}_${idx}` : `user_${idx}`} className="hover:bg-slate-800/50 transition">
                             <td className="py-3 px-4">
                               <div className="flex items-center gap-3">
                                 <img
@@ -1523,9 +1523,9 @@ export const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({
 
               {/* Location Grid */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                {settings.locations.map((loc) => (
+                {settings.locations.map((loc, idx) => (
                   <div
-                    key={loc.id}
+                    key={loc.id ? `${loc.id}_${idx}` : `loc_${idx}`}
                     className={`p-3 rounded-2xl border transition-all flex items-center justify-between ${
                       loc.isActive 
                         ? 'bg-slate-800/80 border-slate-700 text-slate-200' 
@@ -1658,8 +1658,8 @@ export const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({
 
                 <div className="border border-slate-800 rounded-2xl overflow-hidden bg-slate-900">
                   <div className="max-h-80 overflow-y-auto divide-y divide-slate-800/80 text-xs font-mono">
-                    {auditLogs.map((log) => (
-                      <div key={log.id} className="p-3 hover:bg-slate-800/40 flex items-start justify-between gap-4">
+                    {auditLogs.map((log, idx) => (
+                      <div key={log.id ? `${log.id}_${idx}` : `log_${idx}`} className="p-3 hover:bg-slate-800/40 flex items-start justify-between gap-4">
                         <div>
                           <div className="flex items-center gap-2">
                             <span className="text-[10px] bg-slate-800 text-slate-300 px-1.5 py-0.5 rounded font-bold">
