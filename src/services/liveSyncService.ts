@@ -1,6 +1,6 @@
 import { UserProfile, ModReportItem, SystemSettings, SystemAuditLog } from '../types';
 import { normalizeSystemSettings } from './systemSettingsService';
-import { saveReports, loadReports } from './storageService';
+import { saveReports, loadReports, recordDeletedReportIds } from './storageService';
 import { saveAllUsers, deduplicateUsers, recordDeletedUserId } from './authService';
 
 const SYNC_VERSION_KEY = 'mod_report_client_sync_version_v1';
@@ -31,6 +31,7 @@ export interface FullSyncPayload {
   settings: SystemSettings;
   auditLogs: SystemAuditLog[];
   deletedUserIds?: string[];
+  deletedReportIds?: string[];
   masterCredentials?: {
     key: string;
     pin: string;
@@ -50,6 +51,10 @@ export function applyDatabaseSync(data: FullSyncPayload): void {
       data.deletedUserIds.forEach(id => {
         if (id) recordDeletedUserId(id);
       });
+    }
+
+    if (Array.isArray(data.deletedReportIds)) {
+      recordDeletedReportIds(data.deletedReportIds);
     }
 
     if (Array.isArray(data.users)) {

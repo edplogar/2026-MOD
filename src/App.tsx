@@ -5,7 +5,8 @@ import {
   getSyncState, 
   syncReportsToCloud, 
   saveSyncConfig,
-  clearAllReports
+  clearAllReports,
+  recordDeletedReportId
 } from './services/storageService';
 import { 
   getStoredUser, 
@@ -365,6 +366,7 @@ export default function App() {
 
   // Delete report
   const handleDeleteReport = (reportId: string) => {
+    recordDeletedReportId(reportId);
     const updated = reports.filter(r => r.id !== reportId);
     setReports(updated);
     saveReports(updated);

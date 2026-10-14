@@ -40,26 +40,34 @@ export const PdfExportModal: React.FC<PdfExportModalProps> = ({
 
   // Filter reports according to choices
   const filteredReports = useMemo(() => {
-    return reports.filter(r => {
+    return (reports || []).filter(r => {
+      if (!r) return false;
 
       if (dateFilterType === 'oktober') {
-        const clean = (r.date || r.timestamp).trim().split(' ')[0];
+        const rawDate = String(r.date || r.timestamp || '').trim();
+        const clean = rawDate.split(' ')[0] || '';
         if (!clean.startsWith('10/') && !clean.startsWith('10-') && !clean.startsWith('2026-10')) return false;
       } else if (dateFilterType === 'custom') {
         if (startDate && endDate) {
-          // simple check
+          const rawDate = String(r.date || r.timestamp || '').trim().split(' ')[0] || '';
+          if (rawDate && (rawDate < startDate || rawDate > endDate)) {
+            return false;
+          }
         }
       }
 
-      if (shiftFilter !== 'all' && !r.shift.startsWith(shiftFilter)) {
+      if (shiftFilter !== 'all') {
+        const shiftStr = String(r.shift || '');
+        if (!shiftStr.startsWith(shiftFilter)) {
+          return false;
+        }
+      }
+
+      if (officerFilter !== 'all' && (r.officerName || '') !== officerFilter) {
         return false;
       }
 
-      if (officerFilter !== 'all' && r.officerName !== officerFilter) {
-        return false;
-      }
-
-      if (deptFilter !== 'all' && r.followUpDept !== deptFilter) {
+      if (deptFilter !== 'all' && (r.followUpDept || '') !== deptFilter) {
         return false;
       }
 

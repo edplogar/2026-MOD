@@ -266,7 +266,7 @@ export const NewReportModal: React.FC<NewReportModalProps> = ({
     const folderId = settings.driveFolderId || '1LG_MOD_DRIVE_FOLDER_2026';
     const folderName = settings.driveFolderName || 'HOTEL LOMBOK GARDEN / MOD REPORTS 2026';
     const finalPictures = uploadedPictures.map(p => {
-      const isReallyOnDrive = Boolean(p.uploadedToDrive && p.driveId && !p.driveId.startsWith('pic-') && !p.driveId.startsWith('file-') && !p.driveId.startsWith('local-'));
+      const isReallyOnDrive = Boolean(p.uploadedToDrive && typeof p.driveId === 'string' && !p.driveId.startsWith('pic-') && !p.driveId.startsWith('file-') && !p.driveId.startsWith('local-'));
       return {
         ...p,
         driveFolderId: p.driveFolderId || folderId,

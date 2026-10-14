@@ -7,9 +7,60 @@ import { batchSyncReportsToFirestore, saveReportToFirestore, clearAllReportsFrom
 const STORAGE_KEY = 'mod_report_logar_data_v2';
 const SYNC_CONFIG_KEY = 'mod_report_logar_sync_config_v1';
 const CLEARED_KEY = 'mod_report_logar_cleared_v1';
+const DELETED_REPORT_IDS_KEY = 'mod_report_deleted_report_ids_v1';
 
 // In-memory reports cache to ensure data integrity during session even if localStorage is full
 let memoryReportsCache: ModReportItem[] | null = null;
+
+export function getDeletedReportIds(): Set<string> {
+  try {
+    const raw = localStorage.getItem(DELETED_REPORT_IDS_KEY);
+    if (raw) {
+      const arr = JSON.parse(raw);
+      if (Array.isArray(arr)) return new Set(arr);
+    }
+  } catch {
+    // ignore
+  }
+  return new Set();
+}
+
+export function recordDeletedReportId(id: string): void {
+  if (!id) return;
+  try {
+    const set = getDeletedReportIds();
+    set.add(id);
+    localStorage.setItem(DELETED_REPORT_IDS_KEY, JSON.stringify(Array.from(set)));
+    if (memoryReportsCache !== null) {
+      memoryReportsCache = memoryReportsCache.filter(r => r && r.id !== id);
+    }
+  } catch {
+    // ignore
+  }
+}
+
+export function recordDeletedReportIds(ids: string[]): void {
+  if (!Array.isArray(ids) || ids.length === 0) return;
+  try {
+    const set = getDeletedReportIds();
+    const idSet = new Set(ids);
+    ids.forEach(id => { if (id) set.add(id); });
+    localStorage.setItem(DELETED_REPORT_IDS_KEY, JSON.stringify(Array.from(set)));
+    if (memoryReportsCache !== null) {
+      memoryReportsCache = memoryReportsCache.filter(r => r && !idSet.has(r.id));
+    }
+  } catch {
+    // ignore
+  }
+}
+
+export function clearDeletedReportIds(): void {
+  try {
+    localStorage.removeItem(DELETED_REPORT_IDS_KEY);
+  } catch {
+    // ignore
+  }
+}
 
 /**
  * Sanitizes reports before storing in browser localStorage:
@@ -95,6 +146,7 @@ export function parseReportTimestampMs(report: ModReportItem): number {
 
 export function mergeReports(existing: ModReportItem[], incoming: ModReportItem[]): ModReportItem[] {
   const map = new Map<string, ModReportItem>();
+  const deletedIds = getDeletedReportIds();
 
   const getReportKey = (r: ModReportItem) => {
     if (r.id) return r.id;
@@ -103,7 +155,7 @@ export function mergeReports(existing: ModReportItem[], incoming: ModReportItem[
 
   if (Array.isArray(existing)) {
     existing.forEach(r => {
-      if (r) {
+      if (r && r.id && !deletedIds.has(r.id)) {
         const key = getReportKey(r);
         map.set(key, r);
       }
@@ -112,7 +164,7 @@ export function mergeReports(existing: ModReportItem[], incoming: ModReportItem[
 
   if (Array.isArray(incoming)) {
     incoming.forEach(r => {
-      if (r) {
+      if (r && r.id && !deletedIds.has(r.id)) {
         const key = getReportKey(r);
         const prev = map.get(key);
         if (!prev) {
@@ -133,15 +185,16 @@ export function mergeReports(existing: ModReportItem[], incoming: ModReportItem[
     });
   }
 
-  const mergedList = Array.from(map.values()).filter(r => isDateOnOrAfterOctober2026(r.date) && isDateOnOrAfterOctober2026(r.timestamp));
+  const mergedList = Array.from(map.values()).filter(r => isDateOnOrAfterOctober2026(r.date) && isDateOnOrAfterOctober2026(r.timestamp) && !deletedIds.has(r.id));
   mergedList.sort((a, b) => parseReportTimestampMs(b) - parseReportTimestampMs(a));
 
   return mergedList;
 }
 
 export function loadReports(): ModReportItem[] {
+  const deletedIds = getDeletedReportIds();
   if (memoryReportsCache !== null) {
-    const validCached = memoryReportsCache.filter(r => isDateOnOrAfterOctober2026(r.date) && isDateOnOrAfterOctober2026(r.timestamp));
+    const validCached = memoryReportsCache.filter(r => r && !deletedIds.has(r.id) && isDateOnOrAfterOctober2026(r.date) && isDateOnOrAfterOctober2026(r.timestamp));
     memoryReportsCache = validCached;
     return validCached;
   }
@@ -172,8 +225,8 @@ export function loadReports(): ModReportItem[] {
     loaded = parseCSVToReports(RAW_MOD_CSV);
   }
 
-  // Strictly filter out any reports dated prior to October 1, 2026
-  loaded = loaded.filter(r => isDateOnOrAfterOctober2026(r.date) && isDateOnOrAfterOctober2026(r.timestamp));
+  // Strictly filter out deleted reports & reports dated prior to October 1, 2026
+  loaded = loaded.filter(r => r && !deletedIds.has(r.id) && isDateOnOrAfterOctober2026(r.date) && isDateOnOrAfterOctober2026(r.timestamp));
 
   memoryReportsCache = loaded;
   try {
@@ -187,13 +240,13 @@ export function loadReports(): ModReportItem[] {
 export function saveReports(reports: ModReportItem[]): void {
   if (!Array.isArray(reports)) return;
 
-  const currentCache = memoryReportsCache || [];
-  const merged = mergeReports(currentCache, reports);
+  const deletedIds = getDeletedReportIds();
+  const validReports = reports.filter(r => r && r.id && !deletedIds.has(r.id) && isDateOnOrAfterOctober2026(r.date) && isDateOnOrAfterOctober2026(r.timestamp));
 
-  // Always keep in-memory cache up-to-date with full data
-  memoryReportsCache = merged;
+  // Directly set memory cache to valid target reports to prevent resurrecting deleted items
+  memoryReportsCache = validReports;
 
-  const sanitized = sanitizeReportsForStorage(merged);
+  const sanitized = sanitizeReportsForStorage(validReports);
 
   // Tier 1: Try saving full sanitized dataset
   try {
@@ -247,6 +300,7 @@ export function saveReports(reports: ModReportItem[]): void {
 }
 
 export async function clearAllReports(): Promise<void> {
+  clearDeletedReportIds();
   memoryReportsCache = [];
   try {
     localStorage.setItem(CLEARED_KEY, 'true');
@@ -500,12 +554,14 @@ export async function deleteReportsByDateRange(startDate: string, endDate: strin
     return { deletedCount: 0, remainingCount: all.length };
   }
 
+  const deleteIds = toDelete.map(r => r.id);
+  recordDeletedReportIds(deleteIds);
+
   // Update in-memory cache and localStorage
   memoryReportsCache = toKeep;
   saveReports(toKeep);
 
   // 1. Call server backend endpoint to remove deleted reports from database.json
-  const deleteIds = toDelete.map(r => r.id);
   fetch('/api/reports/delete-by-date', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },

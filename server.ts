@@ -43,6 +43,7 @@ interface DatabaseSchema {
   auditLogs: SystemAuditLog[];
   masterCredentials: MasterCredentials;
   deletedUserIds?: string[];
+  deletedReportIds?: string[];
 }
 
 function initDefaultDatabase(): DatabaseSchema {
@@ -55,6 +56,7 @@ function initDefaultDatabase(): DatabaseSchema {
     reports: initialReports,
     settings: JSON.parse(JSON.stringify(DEFAULT_SYSTEM_SETTINGS)),
     deletedUserIds: [],
+    deletedReportIds: [],
     auditLogs: [
       {
         id: `audit-init-${Date.now()}`,
@@ -122,11 +124,16 @@ try {
       }
 
       // Ensure reports exist and merge with default initial reports
+      if (!Array.isArray(db.deletedReportIds)) {
+        db.deletedReportIds = [];
+      }
       if (!Array.isArray(db.reports)) {
         db.reports = [];
       }
+      const deletedReportSet = new Set<string>(db.deletedReportIds);
       const initialCsvReports = parseCSVToReports(RAW_MOD_CSV);
-      db.reports = mergeReports(initialCsvReports, db.reports).filter(r => isDateOnOrAfterOctober2026(r.date) && isDateOnOrAfterOctober2026(r.timestamp));
+      db.reports = mergeReports(initialCsvReports, db.reports)
+        .filter(r => r && r.id && !deletedReportSet.has(r.id) && isDateOnOrAfterOctober2026(r.date) && isDateOnOrAfterOctober2026(r.timestamp));
 
       saveDatabaseToDisk();
       console.log(`[DB] Database loaded from disk. Users: ${db.users.length}, Reports: ${db.reports.length}, Version: ${db.version}`);
@@ -412,6 +419,7 @@ app.get('/api/sync', (_req, res) => {
     users: db.users,
     deletedUserIds: db.deletedUserIds || [],
     reports: db.reports,
+    deletedReportIds: db.deletedReportIds || [],
     settings: db.settings,
     auditLogs: db.auditLogs.slice(0, 300),
     masterCredentials: db.masterCredentials,
@@ -642,6 +650,7 @@ app.post('/api/admin/master-key', (req: Request, res: Response) => {
 
 export function mergeReports(existing: ModReportItem[], incoming: ModReportItem[]): ModReportItem[] {
   const map = new Map<string, ModReportItem>();
+  const deletedSet = new Set<string>(db?.deletedReportIds || []);
 
   const getReportKey = (r: ModReportItem) => {
     if (r.id) return r.id;
@@ -650,7 +659,7 @@ export function mergeReports(existing: ModReportItem[], incoming: ModReportItem[
 
   if (Array.isArray(existing)) {
     existing.forEach(r => {
-      if (r) {
+      if (r && r.id && !deletedSet.has(r.id)) {
         const key = getReportKey(r);
         map.set(key, r);
       }
@@ -659,7 +668,7 @@ export function mergeReports(existing: ModReportItem[], incoming: ModReportItem[
 
   if (Array.isArray(incoming)) {
     incoming.forEach(r => {
-      if (r) {
+      if (r && r.id && !deletedSet.has(r.id)) {
         const key = getReportKey(r);
         const prev = map.get(key);
         if (!prev) {
@@ -680,7 +689,7 @@ export function mergeReports(existing: ModReportItem[], incoming: ModReportItem[
     });
   }
 
-  const mergedList = Array.from(map.values());
+  const mergedList = Array.from(map.values()).filter(r => r && r.id && !deletedSet.has(r.id));
   mergedList.sort((a, b) => parseReportTimestampMs(b) - parseReportTimestampMs(a));
 
   return mergedList;
@@ -692,6 +701,7 @@ export function mergeReports(existing: ModReportItem[], incoming: ModReportItem[
 app.get('/api/reports', (_req, res) => {
   res.json({
     reports: db.reports,
+    deletedReportIds: db.deletedReportIds || [],
     version: db.version,
     updatedAt: db.updatedAt,
   });
@@ -706,7 +716,7 @@ app.post('/api/reports', (req: Request, res: Response) => {
       db.reports = mergeReports(db.reports, reports);
       db.version = (db.version || 1) + 1;
       saveDatabaseToDisk();
-      broadcastSyncEvent('REPORTS_SYNCED', { count: db.reports.length });
+      broadcastSyncEvent('REPORTS_SYNCED', { count: db.reports.length, reports: db.reports, deletedReportIds: db.deletedReportIds });
       return res.json({ success: true, count: db.reports.length, reports: db.reports, version: db.version });
     }
 
@@ -730,9 +740,10 @@ app.post('/api/reports', (req: Request, res: Response) => {
 app.delete('/api/reports', (_req: Request, res: Response) => {
   try {
     db.reports = [];
+    db.deletedReportIds = [];
     db.version = (db.version || 1) + 1;
     saveDatabaseToDisk();
-    broadcastSyncEvent('REPORTS_SYNCED', { count: 0 });
+    broadcastSyncEvent('REPORTS_SYNCED', { count: 0, reports: [], deletedReportIds: [] });
     res.json({ success: true, count: 0, version: db.version });
   } catch (err: any) {
     res.status(500).json({ error: err.message || 'Gagal menghapus seluruh laporan' });
@@ -743,11 +754,17 @@ app.delete('/api/reports', (_req: Request, res: Response) => {
 app.delete('/api/reports/:id', (req: Request, res: Response) => {
   try {
     const { id } = req.params;
+    if (!Array.isArray(db.deletedReportIds)) {
+      db.deletedReportIds = [];
+    }
+    if (id && !db.deletedReportIds.includes(id)) {
+      db.deletedReportIds.push(id);
+    }
     db.reports = db.reports.filter(r => r.id !== id);
     db.version = (db.version || 1) + 1;
     saveDatabaseToDisk();
-    broadcastSyncEvent('REPORT_DELETED', { reportId: id });
-    res.json({ success: true, version: db.version });
+    broadcastSyncEvent('REPORT_DELETED', { reportId: id, deletedReportIds: db.deletedReportIds });
+    res.json({ success: true, version: db.version, deletedReportIds: db.deletedReportIds });
   } catch (err: any) {
     res.status(500).json({ error: err.message || 'Gagal menghapus laporan' });
   }
@@ -759,21 +776,43 @@ app.post('/api/reports/delete-by-date', (req: Request, res: Response) => {
     const { idsToDelete, startDate, endDate } = req.body;
     const initialCount = db.reports.length;
 
+    if (!Array.isArray(db.deletedReportIds)) {
+      db.deletedReportIds = [];
+    }
+
+    const removedIds: string[] = [];
     if (Array.isArray(idsToDelete) && idsToDelete.length > 0) {
       const deleteSet = new Set<string>(idsToDelete);
-      db.reports = db.reports.filter(r => !deleteSet.has(r.id));
+      db.reports = db.reports.filter(r => {
+        if (deleteSet.has(r.id)) {
+          removedIds.push(r.id);
+          return false;
+        }
+        return true;
+      });
     } else if (startDate && endDate) {
       db.reports = db.reports.filter(r => {
         const reportDate = (r.date || r.timestamp || '').split('T')[0];
-        return reportDate < startDate || reportDate > endDate;
+        const isMatch = reportDate >= startDate && reportDate <= endDate;
+        if (isMatch) {
+          removedIds.push(r.id);
+          return false;
+        }
+        return true;
       });
     }
+
+    removedIds.forEach(id => {
+      if (id && !db.deletedReportIds!.includes(id)) {
+        db.deletedReportIds!.push(id);
+      }
+    });
 
     const deletedCount = initialCount - db.reports.length;
     db.version = (db.version || 1) + 1;
     saveDatabaseToDisk();
-    broadcastSyncEvent('REPORTS_SYNCED', { count: db.reports.length, reports: db.reports });
-    res.json({ success: true, deletedCount, remainingCount: db.reports.length, version: db.version });
+    broadcastSyncEvent('REPORTS_SYNCED', { count: db.reports.length, reports: db.reports, deletedReportIds: db.deletedReportIds });
+    res.json({ success: true, deletedCount, remainingCount: db.reports.length, version: db.version, deletedReportIds: db.deletedReportIds });
   } catch (err: any) {
     res.status(500).json({ error: err.message || 'Gagal menghapus laporan berdasarkan tanggal' });
   }
