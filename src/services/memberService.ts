@@ -1,5 +1,5 @@
 import { HotelMember, MembershipDuration, MembershipCategory, MembershipStatus } from '../types';
-import { db } from './firebase';
+import { db, isFirestoreQuotaExceeded, isQuotaExceededError, setFirestoreQuotaExceeded } from './firebase';
 import { collection, doc, getDocs, setDoc, deleteDoc } from 'firebase/firestore';
 
 const MEMBERS_STORAGE_KEY = 'mod_report_hotel_members_v1';
@@ -570,10 +570,15 @@ async function persistMemberToBackend(member: HotelMember): Promise<void> {
  * Save member to Firestore
  */
 async function saveMemberToFirestore(member: HotelMember): Promise<void> {
+  if (isFirestoreQuotaExceeded()) return;
   try {
     const docRef = doc(db, 'members', member.id);
     await setDoc(docRef, member);
   } catch (err) {
+    if (isQuotaExceededError(err)) {
+      setFirestoreQuotaExceeded(true);
+      return;
+    }
     console.warn('Sync member to Firestore deferred:', err);
   }
 }
@@ -582,10 +587,15 @@ async function saveMemberToFirestore(member: HotelMember): Promise<void> {
  * Delete member from Firestore
  */
 async function deleteMemberFromFirestore(memberId: string): Promise<void> {
+  if (isFirestoreQuotaExceeded()) return;
   try {
     const docRef = doc(db, 'members', memberId);
     await deleteDoc(docRef);
   } catch (err) {
+    if (isQuotaExceededError(err)) {
+      setFirestoreQuotaExceeded(true);
+      return;
+    }
     console.warn('Delete member from Firestore deferred:', err);
   }
 }

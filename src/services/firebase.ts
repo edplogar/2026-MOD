@@ -9,7 +9,10 @@ import {
   deleteDoc, 
   onSnapshot, 
   writeBatch,
-  getDocFromServer
+  getDocFromServer,
+  disableNetwork,
+  enableNetwork,
+  setLogLevel
 } from 'firebase/firestore';
 import { 
   getAuth, 
@@ -23,8 +26,15 @@ import {
 import firebaseConfig from '../../firebase-applet-config.json';
 import { ModReportItem, UserProfile, SystemSettings, SystemAuditLog } from '../types/index.ts';
 
+// Set Firestore SDK logger to silent to suppress internal connection backoff noise
+try {
+  setLogLevel('silent');
+} catch {
+  // ignore
+}
+
 // Initialize Firebase App
-const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
+export const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
 
 // CRITICAL: Initialize Firestore with database ID from config
 export const db = getFirestore(app, firebaseConfig.firestoreDatabaseId);
@@ -58,12 +68,35 @@ export interface FirestoreErrorInfo {
   };
 }
 
-let firestoreQuotaExceededState = false;
+const FIRESTORE_QUOTA_STORAGE_KEY = 'mod_report_firestore_quota_day_v1';
+
+function checkInitialQuotaExceeded(): boolean {
+  try {
+    const today = new Date().toISOString().slice(0, 10);
+    const stored = localStorage.getItem(FIRESTORE_QUOTA_STORAGE_KEY);
+    return stored === today;
+  } catch {
+    return false;
+  }
+}
+
+let firestoreQuotaExceededState = checkInitialQuotaExceeded();
+
+// If quota is already marked as exceeded today on startup, disable network immediately
+if (firestoreQuotaExceededState) {
+  try {
+    disableNetwork(db).catch(() => {});
+  } catch {
+    // ignore
+  }
+}
 
 export function isQuotaExceededError(error: unknown): boolean {
   if (!error) return false;
   const msg = error instanceof Error ? error.message : String(error);
+  const code = (error as any)?.code;
   return (
+    code === 'resource-exhausted' ||
     msg.includes('resource-exhausted') ||
     msg.includes('quota metric') ||
     msg.includes('Quota exceeded') ||
@@ -77,9 +110,20 @@ export function isFirestoreQuotaExceeded(): boolean {
 }
 
 export function setFirestoreQuotaExceeded(exceeded: boolean): void {
-  if (firestoreQuotaExceededState === exceeded) return;
-  firestoreQuotaExceededState = exceeded;
   if (exceeded) {
+    firestoreQuotaExceededState = true;
+    try {
+      const today = new Date().toISOString().slice(0, 10);
+      localStorage.setItem(FIRESTORE_QUOTA_STORAGE_KEY, today);
+    } catch {
+      // ignore
+    }
+    // Halt Firestore network to prevent exponential backoff loops and backend overloading
+    try {
+      disableNetwork(db).catch(() => {});
+    } catch {
+      // ignore
+    }
     console.warn(
       '[Firestore Spark Quota] Free daily write limit reached (20,000 writes/day). Seamlessly maintaining data in local & backend server storage. Quota will automatically reset tomorrow.'
     );
@@ -88,7 +132,31 @@ export function setFirestoreQuotaExceeded(exceeded: boolean): void {
     } catch {
       // ignore
     }
+  } else {
+    firestoreQuotaExceededState = false;
+    try {
+      localStorage.removeItem(FIRESTORE_QUOTA_STORAGE_KEY);
+      enableNetwork(db).catch(() => {});
+    } catch {
+      // ignore
+    }
   }
+}
+
+// Global safety net to gracefully intercept any uncaught quota exhausted errors
+if (typeof window !== 'undefined') {
+  window.addEventListener('unhandledrejection', (event) => {
+    if (isQuotaExceededError(event.reason)) {
+      setFirestoreQuotaExceeded(true);
+      event.preventDefault();
+    }
+  });
+  window.addEventListener('error', (event) => {
+    if (isQuotaExceededError(event.error) || isQuotaExceededError(event.message)) {
+      setFirestoreQuotaExceeded(true);
+      event.preventDefault();
+    }
+  });
 }
 
 export function handleFirestoreError(error: unknown, operationType: OperationType, path: string | null) {
@@ -145,20 +213,26 @@ export function sanitizeForFirestore<T>(data: T): T {
 
 // Connection test as required by Firebase skill
 export async function testConnection(): Promise<boolean> {
+  if (firestoreQuotaExceededState) return false;
   try {
     await getDocFromServer(doc(db, 'test', 'connection'));
     return true;
   } catch (error) {
+    if (isQuotaExceededError(error)) {
+      setFirestoreQuotaExceeded(true);
+      return false;
+    }
     if (error instanceof Error && error.message.includes('the client is offline')) {
-      console.warn('Firebase client is offline, using offline persistence cache.');
       return false;
     }
     return false;
   }
 }
 
-// Run connection test on init
-testConnection();
+// Run connection test on init only when quota is not exceeded
+if (!firestoreQuotaExceededState) {
+  testConnection().catch(() => {});
+}
 
 // Try quiet auth init: if unauthenticated, attempt anonymous if supported, or wait for user/google sign-in
 export async function initFirebaseAuth(): Promise<FirebaseUser | null> {
@@ -222,6 +296,10 @@ export function subscribeToFirestoreReports(
       onUpdate(items);
     },
     (error) => {
+      if (isQuotaExceededError(error)) {
+        setFirestoreQuotaExceeded(true);
+        return;
+      }
       handleFirestoreError(error, OperationType.LIST, path);
       if (onError) onError(error);
     }
@@ -351,6 +429,10 @@ export function subscribeToFirestoreUsers(
       }
     },
     (error) => {
+      if (isQuotaExceededError(error)) {
+        setFirestoreQuotaExceeded(true);
+        return;
+      }
       handleFirestoreError(error, OperationType.LIST, path);
       if (onError) onError(error);
     }
@@ -467,6 +549,10 @@ export function subscribeToFirestoreSettings(
       }
     },
     (error) => {
+      if (isQuotaExceededError(error)) {
+        setFirestoreQuotaExceeded(true);
+        return;
+      }
       handleFirestoreError(error, OperationType.GET, path);
       if (onError) onError(error);
     }
@@ -511,6 +597,10 @@ export function subscribeToFirestoreAuditLogs(
       onUpdate(logs);
     },
     (error) => {
+      if (isQuotaExceededError(error)) {
+        setFirestoreQuotaExceeded(true);
+        return;
+      }
       handleFirestoreError(error, OperationType.LIST, path);
       if (onError) onError(error);
     }

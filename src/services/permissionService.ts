@@ -1,5 +1,5 @@
 import { doc, getDoc, setDoc, onSnapshot } from 'firebase/firestore';
-import { db, sanitizeForFirestore } from './firebase.ts';
+import { db, sanitizeForFirestore, isFirestoreQuotaExceeded, isQuotaExceededError, setFirestoreQuotaExceeded } from './firebase.ts';
 import type { UserProfile, UserRole, RolePermissionConfig, SystemPermissionsState } from '../types/index.ts';
 
 const PERMISSIONS_STORAGE_KEY = 'mod_report_role_permissions_v1';
@@ -205,6 +205,7 @@ export function saveStoredPermissions(state: SystemPermissionsState): void {
 
 export async function syncPermissionsToFirestore(state: SystemPermissionsState): Promise<void> {
   saveStoredPermissions(state);
+  if (isFirestoreQuotaExceeded()) return;
   try {
     const docRef = doc(db, 'role_permissions', 'matrix');
     await setDoc(docRef, sanitizeForFirestore({
@@ -212,11 +213,16 @@ export async function syncPermissionsToFirestore(state: SystemPermissionsState):
       updatedAt: new Date().toISOString(),
     }));
   } catch (err) {
+    if (isQuotaExceededError(err)) {
+      setFirestoreQuotaExceeded(true);
+      return;
+    }
     console.warn('Deferred syncing permissions to Firestore:', err);
   }
 }
 
 export async function fetchPermissionsFromFirestore(): Promise<SystemPermissionsState | null> {
+  if (isFirestoreQuotaExceeded()) return null;
   try {
     const docRef = doc(db, 'role_permissions', 'matrix');
     const snapshot = await getDoc(docRef);
@@ -234,6 +240,10 @@ export async function fetchPermissionsFromFirestore(): Promise<SystemPermissions
       }
     }
   } catch (err) {
+    if (isQuotaExceededError(err)) {
+      setFirestoreQuotaExceeded(true);
+      return null;
+    }
     console.warn('Fetch permissions from Firestore note:', err);
   }
   return null;
@@ -261,6 +271,10 @@ export function subscribeToFirestorePermissions(
       }
     },
     (err) => {
+      if (isQuotaExceededError(err)) {
+        setFirestoreQuotaExceeded(true);
+        return;
+      }
       console.warn('Real-time permissions listener note:', err);
     }
   );
