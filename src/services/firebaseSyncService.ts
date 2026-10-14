@@ -12,6 +12,7 @@ import { UserProfile, ModReportItem, SystemSettings, SystemAuditLog } from '../t
 import { INITIAL_HOTEL_USERS, deduplicateUsers, saveAllUsers } from './authService';
 import { loadReports } from './storageService';
 import { getSystemSettings, getAuditLogs } from './systemSettingsService';
+import { isDateOnOrAfterOctober2026 } from '../data/initialData';
 
 const USERS_COL = 'users';
 const REPORTS_COL = 'reports';
@@ -73,9 +74,19 @@ export function startFirebaseLiveSync(): () => void {
       }
 
       const remoteReports: ModReportItem[] = [];
+      const oldDocIdsToDelete: string[] = [];
       snapshot.forEach((d) => {
-        remoteReports.push(d.data() as ModReportItem);
+        const item = d.data() as ModReportItem;
+        if (isDateOnOrAfterOctober2026(item.date) && isDateOnOrAfterOctober2026(item.timestamp)) {
+          remoteReports.push(item);
+        } else {
+          oldDocIdsToDelete.push(d.id);
+        }
       });
+
+      if (oldDocIdsToDelete.length > 0) {
+        purgeOldReportsFromFirestore(oldDocIdsToDelete);
+      }
 
       if (remoteReports.length > 0) {
         try {
@@ -259,5 +270,27 @@ async function bootstrapFirestoreReports(): Promise<void> {
     console.info(`[FirebaseSync] Bootstrapped ${reports.length} MOD reports to Firestore.`);
   } catch (err) {
     console.warn('[FirebaseSync] Reports bootstrap failed:', err);
+  }
+}
+
+/**
+ * Purge reports prior to October 1, 2026 from Firestore
+ */
+export async function purgeOldReportsFromFirestore(docIds: string[]): Promise<void> {
+  if (!docIds || docIds.length === 0) return;
+  try {
+    const chunkSize = 100;
+    for (let i = 0; i < docIds.length; i += chunkSize) {
+      const chunk = docIds.slice(i, i + chunkSize);
+      const batch = writeBatch(db);
+      chunk.forEach(id => {
+        const ref = doc(db, REPORTS_COL, id);
+        batch.delete(ref);
+      });
+      await batch.commit();
+    }
+    console.info(`[FirebaseSync] Cleaned ${docIds.length} obsolete pre-October 2026 reports from Firestore.`);
+  } catch (err) {
+    console.warn('[FirebaseSync] Purge old reports failed:', err);
   }
 }

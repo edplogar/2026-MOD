@@ -133,17 +133,20 @@ export function mergeReports(existing: ModReportItem[], incoming: ModReportItem[
     });
   }
 
-  const mergedList = Array.from(map.values());
+  const mergedList = Array.from(map.values()).filter(r => isDateOnOrAfterOctober2026(r.date) && isDateOnOrAfterOctober2026(r.timestamp));
   mergedList.sort((a, b) => parseReportTimestampMs(b) - parseReportTimestampMs(a));
 
   return mergedList;
 }
 
 export function loadReports(): ModReportItem[] {
-  if (memoryReportsCache !== null && memoryReportsCache.length > 0) {
-    return memoryReportsCache;
+  if (memoryReportsCache !== null) {
+    const validCached = memoryReportsCache.filter(r => isDateOnOrAfterOctober2026(r.date) && isDateOnOrAfterOctober2026(r.timestamp));
+    memoryReportsCache = validCached;
+    return validCached;
   }
 
+  let loaded: ModReportItem[] = [];
   try {
     const isCleared = localStorage.getItem(CLEARED_KEY) === 'true';
     if (isCleared) {
@@ -157,8 +160,7 @@ export function loadReports(): ModReportItem[] {
       if (Array.isArray(parsed) && parsed.length > 0) {
         const valid = parsed.filter(Boolean);
         if (valid.length > 0) {
-          memoryReportsCache = valid;
-          return valid;
+          loaded = valid;
         }
       }
     }
@@ -166,14 +168,20 @@ export function loadReports(): ModReportItem[] {
     console.warn('Recovering reports from cache due to read error:', e);
   }
 
-  const initial = parseCSVToReports(RAW_MOD_CSV);
-  memoryReportsCache = initial;
+  if (loaded.length === 0) {
+    loaded = parseCSVToReports(RAW_MOD_CSV);
+  }
+
+  // Strictly filter out any reports dated prior to October 1, 2026
+  loaded = loaded.filter(r => isDateOnOrAfterOctober2026(r.date) && isDateOnOrAfterOctober2026(r.timestamp));
+
+  memoryReportsCache = loaded;
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(initial));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(sanitizeReportsForStorage(loaded)));
   } catch {
     // ignore
   }
-  return initial;
+  return loaded;
 }
 
 export function saveReports(reports: ModReportItem[]): void {

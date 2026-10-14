@@ -3,7 +3,7 @@ import type { Request, Response } from 'express';
 import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
-import { parseCSVToReports, RAW_MOD_CSV } from './src/data/initialData.ts';
+import { parseCSVToReports, RAW_MOD_CSV, isDateOnOrAfterOctober2026 } from './src/data/initialData.ts';
 import { parseReportTimestampMs } from './src/services/storageService.ts';
 import { INITIAL_HOTEL_USERS, DEFAULT_SYSTEM_SETTINGS } from './src/data/defaultConstants.ts';
 import { mergeAndDeduplicateUsers } from './src/services/userMergeService.ts';
@@ -46,7 +46,7 @@ interface DatabaseSchema {
 }
 
 function initDefaultDatabase(): DatabaseSchema {
-  const initialReports = parseCSVToReports(RAW_MOD_CSV);
+  const initialReports = parseCSVToReports(RAW_MOD_CSV).filter(r => isDateOnOrAfterOctober2026(r.date) && isDateOnOrAfterOctober2026(r.timestamp));
   const now = new Date().toISOString();
   return {
     version: 1,
@@ -126,7 +126,7 @@ try {
         db.reports = [];
       }
       const initialCsvReports = parseCSVToReports(RAW_MOD_CSV);
-      db.reports = mergeReports(initialCsvReports, db.reports);
+      db.reports = mergeReports(initialCsvReports, db.reports).filter(r => isDateOnOrAfterOctober2026(r.date) && isDateOnOrAfterOctober2026(r.timestamp));
 
       saveDatabaseToDisk();
       console.log(`[DB] Database loaded from disk. Users: ${db.users.length}, Reports: ${db.reports.length}, Version: ${db.version}`);
