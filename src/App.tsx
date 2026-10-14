@@ -563,7 +563,7 @@ export default function App() {
           <div className="flex items-center gap-2 min-w-0">
             <span className="inline-block w-2 h-2 rounded-full bg-[#EAEEBB] animate-pulse shrink-0"></span>
             <span className="font-semibold tracking-wide text-white text-[11px] truncate">
-              HOTEL LOMBOK GARDEN &bull; SISTEM RESMI MANAGER ON DUTY (MOD LOGAR)
+              LOMBOK GARDEN HOTEL &bull; SISTEM RESMI MANAGER ON DUTY (MOD LOGAR)
             </span>
           </div>
           <div className="flex items-center gap-2 sm:gap-3 text-[11px] text-[#FAFBF5] opacity-95 shrink-0">
@@ -639,7 +639,7 @@ export default function App() {
             <div className="flex flex-col sm:flex-row sm:items-center gap-2 text-center sm:text-left">
               <div className="flex items-center justify-center sm:justify-start gap-2">
                 <span className="w-2.5 h-2.5 rounded-full bg-[#95A823]"></span>
-                <span className="font-extrabold text-white tracking-wide">HOTEL LOMBOK GARDEN</span>
+                <span className="font-extrabold text-white tracking-wide">LOMBOK GARDEN HOTEL</span>
               </div>
               <span className="hidden sm:inline text-[#877465]">&bull;</span>
               <span className="text-[#D9DF98] font-serif italic text-sm">Experience the Green of the City</span>

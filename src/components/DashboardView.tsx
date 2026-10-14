@@ -20,17 +20,10 @@ import type {
 } from '../types/index.ts';
 import { getUserPermissions } from '../services/permissionService.ts';
 import { isDateOnOrAfterOctober2026 } from '../data/initialData';
-import { 
-  calculateStorageSavings 
-} from '../services/storageService';
-import { 
-  formatBytes 
-} from '../services/imageCompressionService';
 import {
   CheckCircle2,
   AlertTriangle,
   Clock,
-  HardDrive,
   Sparkles,
   TrendingUp,
   MapPin,
@@ -165,7 +158,6 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     const highPriority = activeReports.filter(r => r.priority === 'Tinggi' || r.priority === 'Urgent').length;
 
     const safePercentage = total > 0 ? Math.round((safe / total) * 100) : 100;
-    const storage = calculateStorageSavings(activeReports);
 
     return {
       total,
@@ -174,7 +166,6 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       inProgress,
       highPriority,
       safePercentage,
-      storage,
     };
   }, [activeReports]);
 
@@ -369,7 +360,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             MANAGER ON DUTY REPORT
           </h2>
           <p className="text-xs text-[#70635A] mt-0.5">
-            Monitoring kondisi fisik hotel, patroli keamanan, kebersihan, dan follow-up departemen Hotel Lombok Garden.
+            Monitoring kondisi fisik hotel, patroli keamanan, kebersihan, dan follow-up departemen Lombok Garden Hotel.
           </p>
         </div>
 
