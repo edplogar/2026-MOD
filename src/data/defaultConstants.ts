@@ -219,7 +219,7 @@ export const INITIAL_HOTEL_USERS: UserProfile[] = [
 export const DEFAULT_SYSTEM_SETTINGS: SystemSettings = {
   hotelName: 'Hotel Lombok Garden',
   hotelAddress: 'Jl. Bung Karno No. 7, Mataram, Nusa Tenggara Barat 83127',
-  hotelPhone: '(0370) 636015 / +62 811-390-001',
+  hotelPhone: '(0370) 636015',
   hotelEmail: 'hotellombokgarden@gmail.com',
   branding: {
     logoUrl: '/logo-emblem.svg',

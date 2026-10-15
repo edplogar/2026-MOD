@@ -52,7 +52,7 @@ export function normalizeSystemSettings(rawSettings?: any): SystemSettings {
 export const DEFAULT_SYSTEM_SETTINGS: SystemSettings = {
   hotelName: 'Hotel Lombok Garden',
   hotelAddress: 'Jl. Bung Karno No. 7, Mataram, Nusa Tenggara Barat 83127',
-  hotelPhone: '(0370) 636015 / +62 811-390-001',
+  hotelPhone: '(0370) 636015',
   hotelEmail: 'hotellombokgarden@gmail.com',
   branding: DEFAULT_BRANDING,
   driveFolderId: '1LG_MOD_DRIVE_FOLDER_2026',
